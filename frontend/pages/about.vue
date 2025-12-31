@@ -15,9 +15,13 @@
         <div>
           <div class="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-bold mb-4">วิสัยทัศน์ของเรา</div>
           <h2 class="text-3xl font-bold text-gray-900 mb-6">เชื่อมโยงผู้คนกับบ้านในฝัน</h2>
-          <p class="text-gray-600 mb-6 leading-relaxed">
+          
+          <div v-if="settingsStore.settings.content_about_us" class="prose max-w-none text-gray-600 mb-6 leading-relaxed whitespace-pre-line" v-html="settingsStore.settings.content_about_us"></div>
+          
+          <p v-else class="text-gray-600 mb-6 leading-relaxed">
             เราเชื่อว่าการซื้อบ้านไม่ใช่แค่การทำธุรกรรม แต่คือการเริ่มต้นบทใหม่ของชีวิต เราจึงพัฒนาเทคโนโลยีที่ช่วยให้การค้นหาบ้านเป็นเรื่องง่าย รวดเร็ว และตรงใจที่สุด พร้อมระบบคัดกรองคุณภาพเพื่อให้คุณมั่นใจในทุกการตัดสินใจ
           </p>
+          
           <div class="grid grid-cols-2 gap-6">
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 text-center">
               <div class="text-3xl font-bold text-green-600 mb-1">10+</div>
@@ -88,5 +92,12 @@
 </template>
 
 <script setup>
-// No script needed for this static page
+import { useSettingsStore } from '~/stores/settings';
+import { onMounted } from 'vue';
+
+const settingsStore = useSettingsStore();
+
+onMounted(() => {
+  settingsStore.fetchSettings();
+});
 </script>

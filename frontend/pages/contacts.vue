@@ -15,48 +15,64 @@
           <h2 class="text-2xl font-bold text-gray-900 mb-6">ช่องทางการติดต่อ</h2>
           
           <div class="space-y-6">
-            <UCard>
+            <UCard v-if="settingsStore.settings.contact_address">
               <div class="flex items-start gap-4">
                 <div class="p-3 bg-green-100 rounded-lg text-green-600">
                   <UIcon name="i-heroicons-map-pin" class="text-2xl" />
                 </div>
                 <div>
                   <h3 class="font-bold text-gray-900 mb-1">ที่อยู่สำนักงาน</h3>
-                  <p class="text-gray-600">123 อาคารแอสเซทเซล ชั้น 15<br>ถนนสุขุมวิท แขวงคลองตัน เขตคลองเตย<br>กรุงเทพฯ 10110</p>
+                  <p class="text-gray-600 whitespace-pre-line">{{ settingsStore.settings.contact_address }}</p>
                 </div>
               </div>
             </UCard>
 
-            <UCard>
+            <UCard v-if="settingsStore.settings.contact_phone">
               <div class="flex items-start gap-4">
                 <div class="p-3 bg-green-100 rounded-lg text-green-600">
                   <UIcon name="i-heroicons-phone" class="text-2xl" />
                 </div>
                 <div>
                   <h3 class="font-bold text-gray-900 mb-1">เบอร์โทรศัพท์</h3>
-                  <p class="text-gray-600">02-123-4567 (สำนักงาน)</p>
-                  <p class="text-gray-600">089-123-4567 (สายด่วน)</p>
+                  <p class="text-gray-600">{{ settingsStore.settings.contact_phone }}</p>
                 </div>
               </div>
             </UCard>
 
-            <UCard>
+            <UCard v-if="settingsStore.settings.contact_email">
               <div class="flex items-start gap-4">
                 <div class="p-3 bg-green-100 rounded-lg text-green-600">
                   <UIcon name="i-heroicons-envelope" class="text-2xl" />
                 </div>
                 <div>
                   <h3 class="font-bold text-gray-900 mb-1">อีเมล</h3>
-                  <p class="text-gray-600">info@assetsale.com</p>
-                  <p class="text-gray-600">support@assetsale.com</p>
+                  <p class="text-gray-600">{{ settingsStore.settings.contact_email }}</p>
                 </div>
               </div>
             </UCard>
           </div>
 
           <div class="mt-8 flex gap-4 justify-center lg:justify-start">
-             <UButton color="blue" variant="soft" icon="i-fab-facebook" to="#" target="_blank">Facebook</UButton>
-             <UButton color="green" variant="soft" icon="i-fab-line" to="#" target="_blank">Line</UButton>
+             <UButton 
+               v-if="settingsStore.settings.contact_facebook" 
+               color="blue" 
+               variant="soft" 
+               icon="i-fab-facebook" 
+               :to="settingsStore.settings.contact_facebook" 
+               target="_blank"
+             >
+               Facebook
+             </UButton>
+             <UButton 
+               v-if="settingsStore.settings.contact_line" 
+               color="green" 
+               variant="soft" 
+               icon="i-fab-line" 
+               :to="`https://line.me/ti/p/~${settingsStore.settings.contact_line.replace('@','')}`" 
+               target="_blank"
+             >
+               Line
+             </UButton>
           </div>
         </div>
 
@@ -126,8 +142,15 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
+import { useSettingsStore } from '~/stores/settings';
+
+const settingsStore = useSettingsStore();
+
+onMounted(async () => {
+  await settingsStore.fetchSettings();
+});
 
 const loading = ref(false);
 const success = ref('');

@@ -9,7 +9,11 @@ export default defineNuxtConfig({
   colorMode: {
     preference: 'light'
   },
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+    'alertifyjs/build/css/alertify.min.css',
+    'alertifyjs/build/css/themes/default.min.css'
+  ],
   app: {
     head: {
       title: 'Asset Sale - Premium Real Estate',

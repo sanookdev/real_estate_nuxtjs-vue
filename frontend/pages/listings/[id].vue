@@ -67,6 +67,14 @@
 
         <!-- Right Column - Info -->
         <div class="space-y-6">
+          <!-- Owner/Admin Actions -->
+          <div v-if="canEdit" class="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-blue-500">
+             <h3 class="font-bold text-gray-900 mb-2">จัดการประกาศ</h3>
+             <NuxtLink :to="`/listings/edit/${listing.id}`" class="flex items-center justify-center gap-2 w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium py-3 rounded-lg transition-colors">
+               <i class="fas fa-pencil-alt"></i> แก้ไขข้อมูล
+             </NuxtLink>
+          </div>
+
           <!-- Main Info Card -->
           <div class="bg-white rounded-2xl p-6 shadow-sm">
             <div class="flex gap-2 mb-4">
@@ -81,7 +89,16 @@
               </span>
             </div>
             
-            <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ listing.title }}</h1>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2 flex items-center justify-between">
+              {{ listing.title }}
+              <button 
+                @click="toggleFavorite" 
+                class="w-10 h-10 rounded-full flex items-center justify-center transition-colors border shadow-sm"
+                :class="isFavorited ? 'bg-red-50 border-red-200 text-red-500' : 'bg-white border-gray-200 text-gray-400 hover:text-red-300'"
+              >
+                <i class="fas fa-heart text-xl"></i>
+              </button>
+            </h1>
             <p class="text-gray-500 flex items-center gap-1 mb-4">
               <i class="fas fa-map-marker-alt"></i> {{ listing.location }}
             </p>
@@ -189,14 +206,24 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
+import { useAuthStore } from '~/stores/auth';
 
 const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
 const listing = ref(null);
 const loading = ref(true);
 const currentImage = ref(null);
 const relatedListings = ref([]);
+
+const canEdit = computed(() => {
+    if (!listing.value || !authStore.user) return false;
+    return authStore.user.id === listing.value.user_id || 
+           authStore.user.role === 'admin' || 
+           authStore.user.role === 'superadmin';
+});
 
 const popularLocations = [
   { name: 'กรุงเทพมหานคร', province: 'กรุงเทพมหานคร' },
@@ -235,14 +262,14 @@ onMounted(async () => {
             currentImage.value = listing.value.images[0];
         }
 
-        // Fetch all listings to filter for related items (Client-side filtering for now)
-        // In a real app, this should be a separate API endpoint like /api/listings?type=...&exclude=...
         const allResponse = await axios.get('http://localhost:5000/api/listings');
         if (allResponse.data) {
             relatedListings.value = allResponse.data
                 .filter(item => item.type === listing.value.type && item.id !== listing.value.id)
-                .slice(0, 4); // Limit to 4 related items
+                .slice(0, 4); 
         }
+
+        await fetchFavorites();
 
     } catch (error) {
         console.error('Error fetching listing', error);
@@ -250,4 +277,49 @@ onMounted(async () => {
         loading.value = false;
     }
 });
+
+const favorites = ref([]);
+const isFavorited = computed(() => {
+    return listing.value && favorites.value.includes(listing.value.id);
+});
+
+const fetchFavorites = async () => {
+  if (authStore.user) {
+    try {
+      const response = await axios.get('http://localhost:5000/api/favorites', {
+        headers: { Authorization: `Bearer ${authStore.token}` }
+      });
+      favorites.value = response.data;
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    }
+  }
+};
+
+const toggleFavorite = async () => {
+    if (!authStore.user) {
+        router.push('/login'); // We need useRouter first
+        return;
+    }
+    
+    if (!listing.value) return;
+
+    try {
+        const response = await axios.post('http://localhost:5000/api/favorites/toggle', 
+            { listingId: listing.value.id },
+            { headers: { Authorization: `Bearer ${authStore.token}` } }
+        );
+        
+        if (response.data.favorited) {
+            if (!favorites.value.includes(listing.value.id)) favorites.value.push(listing.value.id);
+        } else {
+            const index = favorites.value.indexOf(listing.value.id);
+            if (index > -1) favorites.value.splice(index, 1);
+        }
+    } catch (error) {
+        console.error('Error toggling favorite:', error);
+        const { $alertify } = useNuxtApp();
+        $alertify.error('เกิดข้อผิดพลาดในการบันทึกรายการโปรด');
+    }
+};
 </script>

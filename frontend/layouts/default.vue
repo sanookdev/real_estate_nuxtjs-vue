@@ -3,16 +3,27 @@
     <!-- Navbar -->
     <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" :class="navbarClass">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <!-- Logo -->
-          <button @click="handleLogoClick" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span class="text-xl font-bold" :class="isTransparent ? 'text-white' : 'text-green-700'">
-              🏠 AssetSale
-            </span>
-          </button>
+        <div class="flex items-center justify-between h-20 relative">
+          <!-- Left: Logo -->
+          <div class="flex-shrink-0 z-10">
+            <button @click="handleLogoClick" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <template v-if="settingsStore.siteLogo">
+                <img 
+                  :src="`http://localhost:5000/uploads/${settingsStore.siteLogo}`" 
+                  alt="Logo" 
+                  class="h-10 w-auto object-contain rounded-md bg-white/10 backdrop-blur-sm p-0.5"
+                />
+              </template>
+              <span v-else class="text-2xl">🏠</span>
+              
+              <span class="text-xl font-bold" :class="isTransparent ? 'text-white' : 'text-green-700'">
+                {{ settingsStore.siteName || 'Default' }}
+              </span>
+            </button>
+          </div>
 
-          <!-- Desktop Nav -->
-          <nav class="hidden md:flex items-center gap-6">
+          <!-- Center: Desktop Nav -->
+          <div class="hidden md:flex items-center gap-8 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <NuxtLink 
               v-for="link in navLinks" 
               :key="link.to" 
@@ -22,60 +33,52 @@
             >
               {{ link.label }}
             </NuxtLink>
-          </nav>
+          </div>
 
-          <!-- Auth Buttons -->
-          <div class="flex items-center gap-3">
+          <!-- Right: Auth Buttons -->
+          <div class="flex items-center gap-4 z-10">
             <ClientOnly>
               <template v-if="authStore.user">
-                <span class="text-sm font-medium" :class="isTransparent ? 'text-white' : 'text-gray-700'">
-                  {{ authStore.user.username }}
-                </span>
-                <NuxtLink 
-                  to="/dashboard" 
-                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  Dashboard
-                </NuxtLink>
-                <NuxtLink 
-                  v-if="authStore.user.role === 'superadmin'"
-                  to="/admin" 
-                  class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  จัดการผู้ใช้และระบบ
-                </NuxtLink>
-                <NuxtLink 
-                  v-if="authStore.user.role === 'superadmin'"
-                  to="/admin/settings" 
-                  class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  ตั้งค่าระบบ
-                </NuxtLink>
-                <button 
-                  @click="logout" 
-                  class="text-sm font-medium transition-colors"
-                  :class="isTransparent ? 'text-white hover:text-white/80' : 'text-gray-600 hover:text-gray-900'"
-                >
-                  Logout
-                </button>
+                <UDropdown :items="userItems" :popper="{ placement: 'bottom-end' }">
+                  <UButton color="white" variant="ghost" class="flex items-center gap-2">
+                    <UAvatar :alt="authStore.user.username" size="sm" />
+                    <span :class="isTransparent ? 'text-white' : 'text-gray-700'">{{ authStore.user.username }}</span>
+                    <UIcon name="i-heroicons-chevron-down-20-solid" class="w-4 h-4" :class="isTransparent ? 'text-white' : 'text-gray-500'" />
+                  </UButton>
+
+                  <template #account="{ item }">
+                    <div class="text-left">
+                      <p>Signed in as</p>
+                      <p class="truncate font-medium text-gray-900 dark:text-white">
+                        {{ item.label }}
+                      </p>
+                    </div>
+                  </template>
+
+                  <template #item="{ item }">
+                    <span class="truncate">{{ item.label }}</span>
+                    <UIcon :name="item.icon" class="flex-shrink-0 h-4 w-4 text-gray-400 dark:text-gray-500 ms-auto" />
+                  </template>
+                </UDropdown>
               </template>
               <template v-else>
-                <NuxtLink 
-                  to="/login" 
-                  class="text-sm font-medium transition-colors"
-                  :class="isTransparent ? 'text-white hover:text-white/80' : 'text-gray-600 hover:text-green-700'"
-                >
-                  เข้าสู่ระบบ
-                </NuxtLink>
-                <NuxtLink 
-                  to="/register" 
-                  class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                >
-                  สมัครสมาชิก
-                </NuxtLink>
+                <div class="flex items-center gap-3">
+                  <NuxtLink 
+                    to="/login" 
+                    class="text-sm font-medium transition-colors"
+                    :class="isTransparent ? 'text-white hover:text-white/80' : 'text-gray-600 hover:text-green-700'"
+                  >
+                    เข้าสู่ระบบ
+                  </NuxtLink>
+                  <NuxtLink 
+                    to="/register" 
+                    class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all shadow-lg hover:shadow-green-500/30 transform hover:-translate-y-0.5"
+                  >
+                    สมัครสมาชิก
+                  </NuxtLink>
+                </div>
               </template>
               <template #fallback>
-                <!-- Placeholder while loading auth state -->
                 <div class="w-24 h-8 bg-gray-200/50 rounded-lg animate-pulse"></div>
               </template>
             </ClientOnly>
@@ -106,16 +109,16 @@
           </div>
           <div>
             <h4 class="font-semibold mb-4">Contact</h4>
-            <p class="text-sm text-gray-400">📍 Mr.Warat Supaporn</p>
-            <p class="text-sm text-gray-400">📞 +66 6 5352 3666</p>
-            <p class="text-sm text-gray-400">📧 nuk.warat@gmail.com</p>
+            <p v-if="settingsStore.settings.contact_phone" class="text-sm text-gray-400">📞 {{ settingsStore.settings.contact_phone }}</p>
+            <p v-if="settingsStore.settings.contact_email" class="text-sm text-gray-400">📧 {{ settingsStore.settings.contact_email }}</p>
+            <p v-if="settingsStore.settings.contact_line" class="text-sm text-gray-400">💬 Line: {{ settingsStore.settings.contact_line }}</p>
           </div>
           <div>
             <h4 class="font-semibold mb-4">Follow Us</h4>
             <div class="flex gap-4 text-gray-400">
-              <a href="#" class="hover:text-white"><i class="fab fa-facebook text-xl"></i></a>
-              <a href="#" class="hover:text-white"><i class="fab fa-instagram text-xl"></i></a>
-              <a href="#" class="hover:text-white"><i class="fab fa-line text-xl"></i></a>
+              <a v-if="settingsStore.settings.contact_facebook" :href="settingsStore.settings.contact_facebook" target="_blank" class="hover:text-white"><i class="fab fa-facebook text-xl"></i></a>
+              <a v-if="settingsStore.settings.contact_line" :href="`https://line.me/ti/p/~${settingsStore.settings.contact_line.replace('@','')}`" target="_blank" class="hover:text-white"><i class="fab fa-line text-xl"></i></a>
+              <!-- Hardcoded Instagram for now as not in settings yet, or remove -->
             </div>
           </div>
         </div>
@@ -140,9 +143,11 @@
 
 <script setup>
 import { useAuthStore } from '~/stores/auth';
+import { useSettingsStore } from '~/stores/settings';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 const authStore = useAuthStore();
+const settingsStore = useSettingsStore();
 const route = useRoute();
 const router = useRouter();
 const isScrolled = ref(false);
@@ -165,6 +170,54 @@ const navLinks = [
   { label: 'ติดต่อ', to: '/contacts' }
 ];
 
+const logout = () => {
+  const { $alertify } = useNuxtApp();
+  authStore.logout();
+  $alertify.success('ออกจากระบบสำเร็จ');
+  router.push('/');
+};
+
+const userItems = computed(() => [
+  [{
+    label: authStore.user?.username || 'User Account',
+    slot: 'account',
+    disabled: true
+  }],
+  [{
+    label: 'Dashboard',
+    icon: 'i-heroicons-squares-2x2',
+    to: '/dashboard'
+  }, {
+    label: 'รายการที่ถูกใจ',
+    icon: 'i-heroicons-heart',
+    to: '/favorites'
+  }],
+  ...( ['admin', 'superadmin'].includes(authStore.user?.role) ? [
+    [{
+      label: authStore.user?.role === 'superadmin' ? 'จัดการผู้ใช้และระบบ' : 'จัดการประกาศ',
+      icon: authStore.user?.role === 'superadmin' ? 'i-heroicons-users' : 'i-heroicons-clipboard-document-list',
+      to: '/admin'
+    }]
+  ] : []),
+  ...( authStore.user?.role === 'superadmin' ? [
+    [{
+      label: 'ตั้งค่าระบบ',
+      icon: 'i-heroicons-cog-6-tooth',
+      to: '/admin/settings'
+    }]
+  ] : []),
+  [{
+    label: 'เปลี่ยนรหัสผ่าน',
+    icon: 'i-heroicons-key',
+    to: '/change-password'
+  }],
+  [{
+    label: 'ออกจากระบบ',
+    icon: 'i-heroicons-arrow-right-on-rectangle',
+    click: logout
+  }]
+]);
+
 const handleLogoClick = async () => {
   await router.push('/');
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -179,14 +232,9 @@ const handleScroll = () => {
   showScrollTop.value = window.scrollY > 400;
 };
 
-const logout = () => {
-  authStore.logout();
-  router.push('/');
-};
-
-onMounted(() => {
+onMounted(async () => {
+  await settingsStore.fetchSettings();
   window.addEventListener('scroll', handleScroll);
-  // Force scroll to top on refresh
   if (typeof window !== 'undefined') {
     window.history.scrollRestoration = 'manual';
     window.scrollTo(0, 0);

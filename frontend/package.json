@@ -12,6 +12,7 @@
   "dependencies": {
     "@nuxt/ui": "^2.22.3",
     "@pinia/nuxt": "^0.11.3",
+    "alertifyjs": "^1.14.0",
     "axios": "^1.13.2",
     "nuxt": "^4.2.2",
     "pinia": "^3.0.4",

@@ -155,7 +155,19 @@
                     {{ listing.type }}
                   </span>
                 </div>
-                <div class="absolute top-3 right-3">
+                
+                 <!-- Favorite Button -->
+                <button 
+                  @click.prevent="toggleFavorite(listing.id)" 
+                  class="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/80 backdrop-blur flex items-center justify-center hover:bg-white hover:scale-110 transition-all z-10"
+                >
+                  <i 
+                    class="fas fa-heart transition-colors"
+                    :class="favorites.includes(listing.id) ? 'text-red-500' : 'text-gray-400'"
+                  ></i>
+                </button>
+
+                <div class="absolute bottom-12 right-3">
                   <span 
                     class="px-3 py-1 rounded-full text-xs font-bold shadow"
                     :class="listing.property_condition === 'new' ? 'bg-yellow-400 text-yellow-900' : 'bg-white text-gray-700'"
@@ -234,12 +246,16 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { getProvinces } from '~/utils/thailandAddresses';
+import { useAuthStore } from '~/stores/auth';
 
+const router = useRouter(); // Was already imported but ensure correct
 const route = useRoute();
+const authStore = useAuthStore();
 const listings = ref([]);
+const favorites = ref([]);
 const loading = ref(true);
 const sortBy = ref('newest');
 
@@ -390,13 +406,56 @@ onMounted(async () => {
   if (route.query.condition) filters.condition = route.query.condition;
   if (route.query.search) filters.search = route.query.search;
 
+  if (route.query.search) filters.search = route.query.search;
+
   try {
     const response = await axios.get('http://localhost:5000/api/listings');
     listings.value = response.data;
+    await fetchFavorites();
   } catch (error) {
     console.error('Failed to fetch listings', error);
   } finally {
     loading.value = false;
   }
 });
+
+const fetchFavorites = async () => {
+  if (authStore.user) {
+    try {
+      const response = await axios.get('http://localhost:5000/api/favorites', {
+        headers: { Authorization: `Bearer ${authStore.token}` }
+      });
+      favorites.value = response.data;
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    }
+  }
+};
+
+const toggleFavorite = async (id) => {
+  if (!authStore.user) {
+    router.push('/login');
+    return;
+  }
+  
+  try {
+    const response = await axios.post('http://localhost:5000/api/favorites/toggle', 
+      { listingId: id },
+      { headers: { Authorization: `Bearer ${authStore.token}` } }
+    );
+    
+    // Response logic: toggle assumes API returns boolean or just toggle local state
+    // Our API returns { favorited: true/false }
+    if (response.data.favorited) {
+      if (!favorites.value.includes(id)) favorites.value.push(id);
+    } else {
+      const index = favorites.value.indexOf(id);
+      if (index > -1) favorites.value.splice(index, 1);
+    }
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
+    const { $alertify } = useNuxtApp();
+    $alertify.error('เกิดข้อผิดพลาดในการบันทึกรายการโปรด');
+  }
+};
 </script>

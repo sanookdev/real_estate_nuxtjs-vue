@@ -25,12 +25,16 @@ const userRoutes = require('./routes/userRoutes');
 const listingRoutes = require('./routes/listingRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const favoriteRoutes = require('./routes/favoriteRoutes');
+const adRoutes = require('./routes/adRoutes'); // Added adRoutes import
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/listings', listingRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/favorites', favoriteRoutes);
+app.use('/api/ads', adRoutes); // Added adRoutes usage
 
 const PORT = process.env.PORT || 5000;
 

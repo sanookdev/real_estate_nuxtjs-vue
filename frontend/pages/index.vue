@@ -93,6 +93,63 @@
         </div>
       </div>
     </section>
+
+    <!-- Top Banner Ad -->
+    <div 
+      v-if="ads.banner_top" 
+      class="max-w-7xl mx-auto px-4 mt-8 mb-8 opacity-0 translate-y-8 transition-all duration-700" 
+      :class="{ 'opacity-100 translate-y-0': adsVisible }"
+      v-intersection-observer="onAdsVisible"
+    >
+      <a :href="ads.banner_top.link" target="_blank" class="block rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+        <img :src="`http://localhost:5000/uploads/${ads.banner_top.image}`" class="w-full h-32 md:h-48 object-cover" />
+      </a>
+    </div>
+
+    <!-- Features Section with Bento Grid Ads -->
+     <section class="py-12 bg-white">
+      <div 
+        class="max-w-7xl mx-auto px-4 opacity-0 translate-y-8 transition-all duration-700 delay-200"
+         :class="{ 'opacity-100 translate-y-0': adsVisible }"
+         v-intersection-observer="onAdsVisible"
+      >
+         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left: Featured Ad (Big) -->
+            <div class="lg:col-span-2 space-y-8">
+               <div v-if="ads.bento_1" class="rounded-3xl overflow-hidden relative group h-96 shadow-lg">
+                  <a :href="ads.bento_1.link" target="_blank" class="block h-full">
+                     <img :src="`http://localhost:5000/uploads/${ads.bento_1.image}`" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
+                        <span class="bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full mb-2">แนะนำ</span>
+                     </div>
+                  </a>
+               </div>
+            </div>
+
+            <!-- Right: Small Ads Grid -->
+            <div class="grid grid-rows-3 gap-4 h-96">
+                <!-- Top Right -->
+                <div v-if="ads.bento_2" class="rounded-2xl overflow-hidden shadow-md relative group">
+                   <a :href="ads.bento_2.link" target="_blank" class="block h-full">
+                      <img :src="`http://localhost:5000/uploads/${ads.bento_2.image}`" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                   </a>
+                </div>
+                 <!-- Middle Right -->
+                <div v-if="ads.bento_3" class="rounded-2xl overflow-hidden shadow-md relative group">
+                    <a :href="ads.bento_3.link" target="_blank" class="block h-full">
+                      <img :src="`http://localhost:5000/uploads/${ads.bento_3.image}`" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                   </a>
+                </div>
+                 <!-- Bottom Right -->
+                <div v-if="ads.bento_4" class="rounded-2xl overflow-hidden shadow-md relative group">
+                    <a :href="ads.bento_4.link" target="_blank" class="block h-full">
+                      <img :src="`http://localhost:5000/uploads/${ads.bento_4.image}`" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                   </a>
+                </div>
+            </div>
+         </div>
+      </div>
+    </section>
     <!-- Featured Properties -->
     <section class="py-20 bg-gray-50 relative">
       <div class="max-w-7xl mx-auto px-4" v-intersection-observer="onListingsVisible">
@@ -301,8 +358,8 @@
       <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.03%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
       
       <div class="max-w-4xl mx-auto text-center px-4 relative z-10">
-        <h2 class="text-4xl md:text-5xl font-bold mb-6">พร้อมที่จะหาบ้านในฝันของคุณหรือยัง?</h2>
-        <p class="text-xl text-gray-300 mb-10">ลงทะเบียนกับเราวันนี้เพื่อรับข่าวสารและโปรโมชั่นพิเศษ</p>
+        <h2 class="text-4xl md:text-5xl font-bold mb-6">รู้ก่อนใคร !</h2>
+        <p class="text-xl text-gray-300 mb-10">ลงทะเบียนรับข่าวประกาศใหม่ทันที</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
           <input 
             v-model="email" 
@@ -323,10 +380,18 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '~/stores/auth';
 import { getProvinces } from '~/utils/thailandAddresses';
 
 const router = useRouter();
 const listings = ref([]);
+const ads = ref({
+  banner_top: null,
+  bento_1: null,
+  bento_2: null,
+  bento_3: null,
+  bento_4: null
+});
 const loading = ref(true);
 const email = ref('');
 const isSearching = ref(false);
@@ -348,6 +413,7 @@ const areasVisible = ref(false);
 const listingsVisible = ref(false);
 const testimonialsVisible = ref(false);
 const featuresVisible = ref(false);
+const adsVisible = ref(false); // Added adsVisible state
 
 const searchProvince = ref('');
 const searchType = ref('');
@@ -422,12 +488,43 @@ const getListingImage = (listing) => {
   return 'https://placehold.co/600x400/166534/ffffff?text=Property';
 };
 
-const toggleFavorite = (id) => {
-  const index = favorites.value.indexOf(id);
-  if (index > -1) {
-    favorites.value.splice(index, 1);
-  } else {
-    favorites.value.push(id);
+const fetchFavorites = async () => {
+  const authStore = useAuthStore();
+  if (authStore.user) {
+    try {
+      const response = await axios.get('http://localhost:5000/api/favorites', {
+        headers: { Authorization: `Bearer ${authStore.token}` }
+      });
+      favorites.value = response.data;
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    }
+  }
+};
+
+const toggleFavorite = async (id) => {
+  const authStore = useAuthStore();
+  if (!authStore.user) {
+    router.push('/login');
+    return;
+  }
+  
+  try {
+    const response = await axios.post('http://localhost:5000/api/favorites/toggle', 
+      { listingId: id },
+      { headers: { Authorization: `Bearer ${authStore.token}` } }
+    );
+    
+    if (response.data.favorited) {
+      if (!favorites.value.includes(id)) favorites.value.push(id);
+    } else {
+      const index = favorites.value.indexOf(id);
+      if (index > -1) favorites.value.splice(index, 1);
+    }
+  } catch (error) {
+    console.error('Error toggling favorite:', error);
+    const { $alertify } = useNuxtApp();
+    $alertify.error('เกิดข้อผิดพลาดในการบันทึกรายการโปรด');
   }
 };
 
@@ -498,6 +595,11 @@ const onFeaturesVisible = ([{ isIntersecting }]) => {
   if (isIntersecting) featuresVisible.value = true;
 };
 
+// Added onAdsVisible callback
+const onAdsVisible = ([{ isIntersecting }]) => {
+  if (isIntersecting) adsVisible.value = true;
+};
+
 // Parallax scroll handler
 const handleScroll = () => {
   parallaxOffset.value = window.scrollY;
@@ -526,8 +628,30 @@ onMounted(async () => {
   }
 
   try {
-    const response = await axios.get('http://localhost:5000/api/listings');
-    listings.value = response.data;
+    await fetchFavorites();
+    
+    // Fetch listings
+    try {
+      const listingsRes = await axios.get('http://localhost:5000/api/listings');
+      listings.value = listingsRes.data;
+    } catch (e) {
+      console.error('Error fetching listings:', e);
+    }
+    
+    // Fetch ads
+    try {
+      const adsRes = await axios.get('http://localhost:5000/api/ads/active');
+      const adList = adsRes.data;
+      ads.value = {
+        banner_top: adList.find(a => a.position === 'banner-top'),
+        bento_1: adList.find(a => a.position === 'bento-1'),
+        bento_2: adList.find(a => a.position === 'bento-2'),
+        bento_3: adList.find(a => a.position === 'bento-3'),
+        bento_4: adList.find(a => a.position === 'bento-4')
+      };
+    } catch (e) {
+      console.error('Error fetching ads:', e);
+    }
   } catch (error) {
     console.error('Error fetching listings:', error);
   } finally {

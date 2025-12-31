@@ -58,45 +58,48 @@
               <!-- Province -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">จังหวัด *</label>
-                <select 
+                <USelectMenu
                   v-model="form.province" 
+                  :options="provinces"
+                  searchable
+                  searchable-placeholder="ค้นหาจังหวัด..."
+                  placeholder="เลือกจังหวัด"
                   @change="onProvinceChange"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  class="w-full"
                   required
-                >
-                  <option value="">เลือกจังหวัด</option>
-                  <option v-for="province in provinces" :key="province" :value="province">{{ province }}</option>
-                </select>
+                />
               </div>
 
               <!-- District -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">เขต/อำเภอ *</label>
-                <select 
+                <USelectMenu
                   v-model="form.district" 
+                  :options="districts"
+                  searchable
+                  searchable-placeholder="ค้นหาเขต/อำเภอ..."
+                  placeholder="เลือกเขต/อำเภอ"
                   @change="onDistrictChange"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   :disabled="!form.province"
+                  class="w-full"
                   required
-                >
-                  <option value="">เลือกเขต/อำเภอ</option>
-                  <option v-for="district in districts" :key="district" :value="district">{{ district }}</option>
-                </select>
+                />
               </div>
 
               <!-- Subdistrict -->
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">แขวง/ตำบล *</label>
-                <select 
+                <USelectMenu
                   v-model="form.subdistrict" 
+                  :options="subdistricts"
+                  searchable
+                  searchable-placeholder="ค้นหาแขวง/ตำบล..."
+                  placeholder="เลือกแขวง/ตำบล"
                   @change="onSubdistrictChange"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   :disabled="!form.district"
+                  class="w-full"
                   required
-                >
-                  <option value="">เลือกแขวง/ตำบล</option>
-                  <option v-for="sub in subdistricts" :key="sub" :value="sub">{{ sub }}</option>
-                </select>
+                />
               </div>
 
               <!-- Postal Code -->
@@ -220,7 +223,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
@@ -250,35 +253,49 @@ const form = reactive({
     google_map_link: ''
 });
 
-// Get provinces list
-const provinces = computed(() => getProvinces());
+// Address Data State
+const provinces = ref([]);
+const districts = ref([]);
+const subdistricts = ref([]);
 
-// Get districts based on selected province
-const districts = computed(() => {
-    return form.province ? getDistricts(form.province) : [];
-});
-
-// Get subdistricts based on selected province and district
-const subdistricts = computed(() => {
-    return form.province && form.district ? getSubdistricts(form.province, form.district) : [];
+// Load provinces on mount
+onMounted(async () => {
+    try {
+        provinces.value = await getProvinces();
+    } catch (e) {
+        console.error('Error loading provinces:', e);
+    }
 });
 
 // Handle province change
-const onProvinceChange = () => {
+const onProvinceChange = async () => {
     form.district = '';
     form.subdistrict = '';
     form.postal_code = '';
+    districts.value = [];
+    subdistricts.value = [];
+    
+    if (form.province) {
+        districts.value = await getDistricts(form.province);
+    }
 };
 
 // Handle district change
-const onDistrictChange = () => {
+const onDistrictChange = async () => {
     form.subdistrict = '';
     form.postal_code = '';
+    subdistricts.value = [];
+    
+    if (form.province && form.district) {
+        subdistricts.value = await getSubdistricts(form.province, form.district);
+    }
 };
 
-// Handle subdistrict change - auto-fill postal code
-const onSubdistrictChange = () => {
-    form.postal_code = getPostalCode(form.province, form.district, form.subdistrict);
+// Handle subdistrict change
+const onSubdistrictChange = async () => {
+    if (form.province && form.district && form.subdistrict) {
+        form.postal_code = await getPostalCode(form.province, form.district, form.subdistrict);
+    }
 };
 
 const imagePreviews = ref([]);
