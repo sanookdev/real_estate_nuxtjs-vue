@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Environment variables
+.env
+.env.*
+
+# Uploads
+uploads/
+backend/uploads/
+
+# Nuxt/Vue specific
+.nuxt/
+.output/
+dist/
+.DS_Store
+*.log
