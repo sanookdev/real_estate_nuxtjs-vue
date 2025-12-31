@@ -1,12 +1,30 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pt-24">
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-green-800 to-green-900 py-16 text-center text-white">
-      <h1 class="text-4xl font-bold mb-4">เกี่ยวกับเรา</h1>
-      <p class="text-green-100 text-lg max-w-2xl mx-auto">
-        AssetSale คือแพลตฟอร์มสื่อกลางซื้อขายอสังหาริมทรัพย์ที่ทันสมัยที่สุดในประเทศไทย
-        มุ่งมั่นยกระดับประสบการณ์การซื้อขายบ้านให้ง่าย โปร่งใส และปลอดภัย
-      </p>
+  <div class="min-h-screen bg-gray-50 pt-20">
+    <!-- Glassmorphism Hero Section -->
+    <div class="relative py-20 overflow-hidden">
+      <!-- Animated Background -->
+      <div class="absolute inset-0 bg-gradient-to-br from-green-900 via-emerald-800 to-teal-900">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-green-500/30 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-0 right-1/4 w-80 h-80 bg-emerald-400/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+        <div class="absolute top-1/2 left-1/2 w-64 h-64 bg-teal-500/20 rounded-full blur-3xl animate-pulse animation-delay-4000"></div>
+      </div>
+      
+      <!-- Glass Card -->
+      <div class="relative max-w-4xl mx-auto px-4 text-center">
+        <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl">
+          <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-6">
+            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            <span class="text-green-200 text-sm font-medium tracking-wider uppercase">AssetSale Story</span>
+          </div>
+          <h1 class="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+            เกี่ยวกับ<span class="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-200">เรา</span>
+          </h1>
+          <p class="text-green-100/80 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+            AssetSale คือแพลตฟอร์มสื่อกลางซื้อขายอสังหาริมทรัพย์ที่ทันสมัยที่สุดในประเทศไทย
+            มุ่งมั่นยกระดับประสบการณ์การซื้อขายบ้านให้ง่าย โปร่งใส และปลอดภัย
+          </p>
+        </div>
+      </div>
     </div>
 
     <div class="max-w-7xl mx-auto px-4 py-16">

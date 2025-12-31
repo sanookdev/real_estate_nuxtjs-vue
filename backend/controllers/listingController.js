@@ -156,12 +156,47 @@ exports.updateStatus = async (req, res) => {
         }
 
         const { status } = req.body;
-        if (!['pending', 'active', 'rejected', 'sold'].includes(status)) {
+        if (!['pending', 'active', 'rejected', 'sold', 'inactive'].includes(status)) {
             return res.status(400).json({ message: 'Invalid status' });
         }
 
         await ListingModel.updateStatus(req.params.id, status);
         res.json({ message: `Listing status updated to ${status}` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
+// Owner can update their own listing status (active, inactive, sold)
+exports.updateMyListingStatus = async (req, res) => {
+    try {
+        const listing = await ListingModel.findById(req.params.id);
+        if (!listing) return res.status(404).json({ message: 'Listing not found' });
+
+        // Check ownership (use == for type coercion since DB might return number and JWT might have string)
+        const isOwner = String(listing.user_id) === String(req.user.id);
+        const isAdmin = req.user.role === 'admin' || req.user.role === 'superadmin';
+
+        if (!isOwner && !isAdmin) {
+            return res.status(403).json({ message: 'Not authorized to update this listing' });
+        }
+
+        const { status } = req.body;
+
+        // Owners can only set: active, inactive, sold
+        // But cannot set to "active" if current status is "pending" (needs admin approval)
+        if (!['active', 'inactive', 'sold'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status. Allowed: active, inactive, sold' });
+        }
+
+        // Only allow changing from "pending" to "active" if admin
+        if (listing.status === 'pending' && status === 'active' && !isAdmin) {
+            return res.status(403).json({ message: 'ต้องรอการอนุมัติจาก Admin ก่อน' });
+        }
+
+        await ListingModel.updateStatus(req.params.id, status);
+        res.json({ message: `Listing status updated to ${status}`, status });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

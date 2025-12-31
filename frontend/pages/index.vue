@@ -26,14 +26,14 @@
       <div class="relative z-10 w-full max-w-7xl mx-auto px-4 text-center text-white pt-20">
         <!-- Animated Title -->
         <h1 class="text-5xl md:text-7xl font-bold mb-6 animate-on-load">
-          <span class="block text-white">ค้นหาบ้านในฝัน</span>
+          <span class="block text-white">ที่ดิน และอสังหาริมทรัพย์</span>
           <span class="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-200 mt-2">
-            ที่คุณวาดไว้
+            ทะเลทอง ราคาสวย ไปกันต่อ
           </span>
         </h1>
         
         <p class="text-xl md:text-2xl font-light mb-10 text-green-100 max-w-2xl mx-auto animate-on-load delay-1">
-          รวมอสังหาริมทรัพย์คุณภาพ คอนโด บ้าน ที่ดิน ในทำเลทอง ทั่วประเทศไทย
+          อสังหาริมทรัพย์คุณภาพ คอนโด บ้าน ที่ดิน ในทำเลทอง
         </p>
         
         <!-- Search Box with Glass Effect -->
@@ -94,63 +94,7 @@
       </div>
     </section>
 
-    <!-- Top Banner Ad -->
-    <div 
-      v-if="ads.banner_top" 
-      class="max-w-7xl mx-auto px-4 mt-8 mb-8 opacity-0 translate-y-8 transition-all duration-700" 
-      :class="{ 'opacity-100 translate-y-0': adsVisible }"
-      v-intersection-observer="onAdsVisible"
-    >
-      <a :href="ads.banner_top.link" target="_blank" class="block rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-        <img :src="`http://localhost:5000/uploads/${ads.banner_top.image}`" class="w-full h-32 md:h-48 object-cover" />
-      </a>
-    </div>
-
-    <!-- Features Section with Bento Grid Ads -->
-     <section class="py-12 bg-white">
-      <div 
-        class="max-w-7xl mx-auto px-4 opacity-0 translate-y-8 transition-all duration-700 delay-200"
-         :class="{ 'opacity-100 translate-y-0': adsVisible }"
-         v-intersection-observer="onAdsVisible"
-      >
-         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left: Featured Ad (Big) -->
-            <div class="lg:col-span-2 space-y-8">
-               <div v-if="ads.bento_1" class="rounded-3xl overflow-hidden relative group h-96 shadow-lg">
-                  <a :href="ads.bento_1.link" target="_blank" class="block h-full">
-                     <img :src="`http://localhost:5000/uploads/${ads.bento_1.image}`" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                     <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-8">
-                        <span class="bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full mb-2">แนะนำ</span>
-                     </div>
-                  </a>
-               </div>
-            </div>
-
-            <!-- Right: Small Ads Grid -->
-            <div class="grid grid-rows-3 gap-4 h-96">
-                <!-- Top Right -->
-                <div v-if="ads.bento_2" class="rounded-2xl overflow-hidden shadow-md relative group">
-                   <a :href="ads.bento_2.link" target="_blank" class="block h-full">
-                      <img :src="`http://localhost:5000/uploads/${ads.bento_2.image}`" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                   </a>
-                </div>
-                 <!-- Middle Right -->
-                <div v-if="ads.bento_3" class="rounded-2xl overflow-hidden shadow-md relative group">
-                    <a :href="ads.bento_3.link" target="_blank" class="block h-full">
-                      <img :src="`http://localhost:5000/uploads/${ads.bento_3.image}`" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                   </a>
-                </div>
-                 <!-- Bottom Right -->
-                <div v-if="ads.bento_4" class="rounded-2xl overflow-hidden shadow-md relative group">
-                    <a :href="ads.bento_4.link" target="_blank" class="block h-full">
-                      <img :src="`http://localhost:5000/uploads/${ads.bento_4.image}`" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                   </a>
-                </div>
-            </div>
-         </div>
-      </div>
-    </section>
-    <!-- Featured Properties -->
+     <!-- Featured Properties -->
     <section class="py-20 bg-gray-50 relative">
       <div class="max-w-7xl mx-auto px-4" v-intersection-observer="onListingsVisible">
         <div class="flex justify-between items-end mb-12">
@@ -193,9 +137,10 @@
             v-for="(listing, index) in listings.slice(0, 8)" 
             :key="listing.id" 
             :to="`/listings/${listing.id}`"
-            class="group block bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 opacity-0 translate-y-8"
+            class="group block bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-2xl 
+            transition-all duration-500 hover:-translate-y-2 opacity-0 translate-y-2"
             :class="{ 'opacity-100 translate-y-0': listingsVisible }"
-            :style="{ transitionDelay: `${index * 100 + 200}ms` }"
+           
           >
             <div class="relative h-52 overflow-hidden">
               <img 
@@ -243,6 +188,158 @@
         </div>
       </div>
     </section>
+    <!-- Premium Ads Section with Parallax -->
+    <section 
+      v-if="ads.banner_top || ads.bento_1 || ads.bento_2" 
+      class="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-24 overflow-hidden"
+      ref="adSectionRef"
+      v-intersection-observer="onAdsVisible"
+    >
+      <!-- Animated Background Patterns -->
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.02%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+      </div>
+
+      <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <!-- Section Header -->
+        <div class="text-center mb-16">
+          <div 
+            class="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full mb-6 opacity-0 -translate-y-4 transition-all duration-700"
+            :class="{ 'opacity-100 translate-y-0': adsVisible }"
+          >
+            <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+            <span class="text-white/80 text-sm font-medium tracking-widest uppercase">Featured Partners</span>
+            <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+          </div>
+          <h2 
+            class="text-4xl md:text-5xl font-bold text-white mb-4 opacity-0 -translate-y-4 transition-all duration-700 delay-100"
+            :class="{ 'opacity-100 translate-y-0': adsVisible }"
+          >
+            โฆษณา<span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">พิเศษ</span>
+          </h2>
+          <p 
+            class="text-gray-400 text-lg max-w-2xl mx-auto opacity-0 -translate-y-4 transition-all duration-700 delay-200"
+            :class="{ 'opacity-100 translate-y-0': adsVisible }"
+          >
+            โปรโมชั่นและข้อเสนอพิเศษจากพันธมิตรของเรา
+          </p>
+        </div>
+
+        <!-- Top Banner with Parallax Effect -->
+        <div 
+          v-if="ads.banner_top" 
+          class="mb-12 opacity-0 translate-y-8 transition-all duration-1000 delay-300"
+          :class="{ 'opacity-100 translate-y-0': adsVisible }"
+        >
+          <a 
+            :href="ads.banner_top.link" 
+            target="_blank" 
+            class="block relative rounded-3xl overflow-hidden shadow-2xl group"
+            :style="{ transform: `translateY(${adParallax * 0.1}px)` }"
+          >
+            <div class="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 z-10"></div>
+            <img 
+              :src="`http://localhost:5000/uploads/${ads.banner_top.image}`" 
+              class="w-full h-48 md:h-64 object-cover transform group-hover:scale-105 transition-transform duration-1000" 
+            />
+            <div class="absolute bottom-6 left-8 z-20">
+              <span class="bg-yellow-400 text-black text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider">Featured</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Bento Grid with Parallax -->
+        <div 
+          class="grid grid-cols-1 lg:grid-cols-12 gap-6 opacity-0 translate-y-8 transition-all duration-1000 delay-500"
+          :class="{ 'opacity-100 translate-y-0': adsVisible }"
+        >
+          <!-- Main Large Ad -->
+          <div 
+            v-if="ads.bento_1" 
+            class="lg:col-span-7 relative rounded-3xl overflow-hidden shadow-2xl group h-80 md:h-96"
+            :style="{ transform: `translateY(${adParallax * 0.15}px)` }"
+          >
+            <a :href="ads.bento_1.link" target="_blank" class="block h-full">
+              <img 
+                :src="`http://localhost:5000/uploads/${ads.bento_1.image}`" 
+                class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000" 
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+              <div class="absolute bottom-8 left-8 right-8 z-10">
+                <span class="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block">Premium</span>
+                <h3 class="text-white text-2xl font-bold transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                  โปรโมชั่นพิเศษ
+                </h3>
+              </div>
+            </a>
+          </div>
+
+          <!-- Right Column - Stacked Ads -->
+          <div class="lg:col-span-5 space-y-6">
+            <!-- Bento 2 -->
+            <div 
+              v-if="ads.bento_2" 
+              class="relative rounded-2xl overflow-hidden shadow-xl group h-44"
+              :style="{ transform: `translateY(${adParallax * 0.2}px)` }"
+            >
+              <a :href="ads.bento_2.link" target="_blank" class="block h-full">
+                <img 
+                  :src="`http://localhost:5000/uploads/${ads.bento_2.image}`" 
+                  class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                />
+                <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
+                <div class="absolute bottom-4 left-4 z-10">
+                  <span class="text-white text-sm font-semibold">ข้อเสนอพิเศษ →</span>
+                </div>
+              </a>
+            </div>
+
+            <!-- Bento 3 & 4 Row -->
+            <div class="grid grid-cols-2 gap-4">
+              <div 
+                v-if="ads.bento_3" 
+                class="relative rounded-2xl overflow-hidden shadow-xl group h-40"
+                :style="{ transform: `translateY(${adParallax * 0.25}px)` }"
+              >
+                <a :href="ads.bento_3.link" target="_blank" class="block h-full">
+                  <img 
+                    :src="`http://localhost:5000/uploads/${ads.bento_3.image}`" 
+                    class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" 
+                  />
+                  <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-300"></div>
+                </a>
+              </div>
+              <div 
+                v-if="ads.bento_4" 
+                class="relative rounded-2xl overflow-hidden shadow-xl group h-40"
+                :style="{ transform: `translateY(${adParallax * 0.3}px)` }"
+              >
+                <a :href="ads.bento_4.link" target="_blank" class="block h-full">
+                  <img 
+                    :src="`http://localhost:5000/uploads/${ads.bento_4.image}`" 
+                    class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" 
+                  />
+                  <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-300"></div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Gradient Fade to White (3D depth effect) -->
+      <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 to-transparent"></div>
+      
+      <!-- Decorative Wave -->
+      <div class="absolute -bottom-1 left-0 right-0">
+        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full">
+          <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="#F9FAFB"/>
+        </svg>
+      </div>
+    </section>
+   
    <!-- Parallax Area Gallery -->
     <section class="min-h-[80vh] relative overflow-hidden flex items-center justify-center py-24">
       <!-- Expanding Background (Slide Up Effect) -->
@@ -398,6 +495,8 @@ const isSearching = ref(false);
 const mounted = ref(false);
 const favorites = ref([]);
 const parallaxOffset = ref(0);
+const adSectionRef = ref(null);
+const adParallax = ref(0);
 
 // Section refs
 const categoriesSection = ref(null);
@@ -419,7 +518,7 @@ const searchProvince = ref('');
 const searchType = ref('');
 const searchPrice = ref('');
 
-const provinces = getProvinces();
+const provinces = ref([]);
 
 const propertyTypes = [
   { label: 'คอนโด', value: 'Condo' },
@@ -602,7 +701,22 @@ const onAdsVisible = ([{ isIntersecting }]) => {
 
 // Parallax scroll handler
 const handleScroll = () => {
+  if (typeof window === 'undefined') return;
+  
   parallaxOffset.value = window.scrollY;
+  
+  // Calculate parallax for ads section
+  if (adSectionRef.value) {
+    const rect = adSectionRef.value.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    
+    // Only calculate when section is in view
+    if (rect.top < viewportHeight && rect.bottom > 0) {
+      // Calculate scroll progress through the section
+      const progress = (viewportHeight - rect.top) / (viewportHeight + rect.height);
+      adParallax.value = progress * 100; // 0-100 range for parallax offset
+    }
+  }
 };
 
 // Custom directive for intersection observer
@@ -626,6 +740,9 @@ onMounted(async () => {
   if (typeof window !== 'undefined') {
     window.addEventListener('scroll', handleScroll);
   }
+
+  // Load provinces (client-side only)
+  provinces.value = await getProvinces();
 
   try {
     await fetchFavorites();

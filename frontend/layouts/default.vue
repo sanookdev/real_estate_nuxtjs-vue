@@ -40,9 +40,9 @@
             <ClientOnly>
               <template v-if="authStore.user">
                 <UDropdown :items="userItems" :popper="{ placement: 'bottom-end' }">
-                  <UButton color="white" variant="ghost" class="flex items-center gap-2">
+                  <UButton color="white" variant="ghost" class="flex items-center bg-transparent hover:bg-transparent gap-2">
                     <UAvatar :alt="authStore.user.username" size="sm" />
-                    <span :class="isTransparent ? 'text-white' : 'text-gray-700'">{{ authStore.user.username }}</span>
+                    <span :class="isTransparent ? 'text-white ' : 'text-gray-700'">{{ authStore.user.username }}</span>
                     <UIcon name="i-heroicons-chevron-down-20-solid" class="w-4 h-4" :class="isTransparent ? 'text-white' : 'text-gray-500'" />
                   </UButton>
 
@@ -97,11 +97,11 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 class="text-xl font-bold mb-4">🏠 AssetSale</h3>
-            <p class="text-gray-400 text-sm">แพลตฟอร์มซื้อขายอสังหาริมทรัพย์ชั้นนำ</p>
+            <h3 class="text-xl font-bold mb-4">🏠 {{ settingsStore.settings.site_name || 'Default' }}</h3>
+            <p class="text-gray-400 text-sm">{{ settingsStore.settings.site_description || 'Description Default' }}</p>
           </div>
           <div>
-            <h4 class="font-semibold mb-4">Quick Links</h4>
+            <h4 class="font-semibold mb-4">Pages</h4>
             <ul class="space-y-2 text-sm text-gray-400">
               <li><NuxtLink to="/" class="hover:text-white">หน้าแรก</NuxtLink></li>
               <li><NuxtLink to="/listings" class="hover:text-white">ประกาศทั้งหมด</NuxtLink></li>

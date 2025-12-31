@@ -17,10 +17,15 @@
       <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Left Column - Images -->
         <div class="lg:col-span-2">
-          <div class="bg-white rounded-2xl overflow-hidden shadow-sm">
+          <div class="bg-white rounded-2xl overflow-hidden shadow-sm relative">
+            <!-- SOLD Banner -->
+            <div v-if="listing.status === 'sold'" class="absolute top-0 left-0 right-0 bg-red-600 text-white text-center py-3 z-10 font-bold text-lg shadow-lg">
+              🏷️ ขายแล้ว (SOLD)
+            </div>
             <img 
               :src="currentImage ? `http://localhost:5000/uploads/${currentImage}` : 'https://placehold.co/800x600/166534/ffffff?text=Property'" 
               class="w-full h-[450px] object-cover"
+              :class="{ 'pt-12': listing.status === 'sold' }"
             />
           </div>
           

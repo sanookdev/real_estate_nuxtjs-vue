@@ -16,6 +16,7 @@ router.post('/', authMiddleware, upload.array('images', 5), listingController.cr
 router.get('/user/my-listings', authMiddleware, listingController.getMyListings);
 router.delete('/:id', authMiddleware, listingController.deleteListing);
 router.patch('/:id/status', authMiddleware, roleMiddleware(['admin', 'superadmin']), listingController.updateStatus);
+router.patch('/:id/my-status', authMiddleware, listingController.updateMyListingStatus);
 router.put('/:id', authMiddleware, upload.array('images', 5), listingController.updateListing);
 
 module.exports = router;

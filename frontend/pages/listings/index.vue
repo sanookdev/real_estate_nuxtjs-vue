@@ -1,10 +1,28 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pt-24">
-    <!-- Hero Banner -->
-    <div class="bg-gradient-to-r from-green-700 to-green-900 py-12">
-      <div class="max-w-7xl mx-auto px-4 text-center text-white">
-        <h1 class="text-4xl font-bold mb-2">ค้นหาอสังหาริมทรัพย์</h1>
-        <p class="text-green-100 text-lg">พบกับทรัพย์สินคุณภาพกว่า {{ listings.length }} รายการ</p>
+  <div class="min-h-screen bg-gray-50 pt-20">
+    <!-- Glassmorphism Hero Banner -->
+    <div class="relative py-16 overflow-hidden">
+      <!-- Animated Background -->
+      <div class="absolute inset-0 bg-gradient-to-br from-amber-900 via-orange-800 to-yellow-900">
+        <div class="absolute top-0 left-1/3 w-80 h-80 bg-amber-500/30 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-0 right-1/3 w-96 h-96 bg-orange-400/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+        <div class="absolute top-1/2 right-1/4 w-64 h-64 bg-yellow-500/20 rounded-full blur-3xl animate-pulse animation-delay-4000"></div>
+      </div>
+      
+      <!-- Glass Card -->
+      <div class="relative max-w-4xl mx-auto px-4 text-center">
+        <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
+          <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-4">
+            <UIcon name="i-heroicons-magnifying-glass" class="text-amber-300" />
+            <span class="text-amber-200 text-sm font-medium tracking-wider uppercase">Explore Properties</span>
+          </div>
+          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+            ค้นหา<span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-200">อสังหาริมทรัพย์</span>
+          </h1>
+          <p class="text-amber-100/80 text-lg">
+            พบกับทรัพย์สินคุณภาพกว่า {{ listings.length }} รายการ
+          </p>
+        </div>
       </div>
     </div>
 
@@ -278,7 +296,7 @@ const filters = reactive({
   condition: ''
 });
 
-const provinces = computed(() => getProvinces());
+const provinces = ref([]);
 
 const propertyTypes = [
   { value: '', label: 'ทั้งหมด', icon: '🏘️' },
@@ -399,13 +417,14 @@ const resetFilters = () => {
 };
 
 onMounted(async () => {
+  // Load provinces (client-side only)
+  provinces.value = await getProvinces();
+
   // Read query params and apply to filters
   if (route.query.type) filters.type = route.query.type;
   if (route.query.province) filters.province = route.query.province;
   if (route.query.priceRange) filters.priceRange = route.query.priceRange;
   if (route.query.condition) filters.condition = route.query.condition;
-  if (route.query.search) filters.search = route.query.search;
-
   if (route.query.search) filters.search = route.query.search;
 
   try {
