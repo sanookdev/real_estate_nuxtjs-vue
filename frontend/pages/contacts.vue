@@ -12,14 +12,23 @@
       <!-- Glass Card -->
       <div class="relative max-w-4xl mx-auto px-4 text-center">
         <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-10 shadow-2xl">
-          <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-6">
+          <div 
+            class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-6 opacity-0 translate-y-4 transition-all duration-700"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             <UIcon name="i-heroicons-chat-bubble-left-right" class="text-blue-300" />
             <span class="text-blue-200 text-sm font-medium tracking-wider uppercase">Get In Touch</span>
           </div>
-          <h1 class="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+          <h1 
+            class="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight opacity-0 translate-y-4 transition-all duration-700 delay-100"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             ติดต่อ<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-purple-200">เรา</span>
           </h1>
-          <p class="text-blue-100/80 text-lg max-w-xl mx-auto">
+          <p 
+            class="text-blue-100/80 text-lg max-w-xl mx-auto opacity-0 translate-y-4 transition-all duration-700 delay-200"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             เราพร้อมดูแลและให้คำปรึกษาตลอด 24 ชั่วโมง
           </p>
         </div>
@@ -164,10 +173,16 @@ import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
 import { useSettingsStore } from '~/stores/settings';
 
+
 const settingsStore = useSettingsStore();
+const mounted = ref(false);
 
 onMounted(async () => {
   await settingsStore.fetchSettings();
+  // Trigger fade animation
+  setTimeout(() => {
+    mounted.value = true;
+  }, 100);
 });
 
 const loading = ref(false);

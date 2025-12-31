@@ -188,154 +188,179 @@
         </div>
       </div>
     </section>
-    <!-- Premium Ads Section with Parallax -->
+    <!-- 🎨 Premium Ads Gallery Section -->
     <section 
       v-if="ads.banner_top || ads.bento_1 || ads.bento_2" 
-      class="relative bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 py-24 overflow-hidden"
+      class="relative py-20 overflow-hidden"
       ref="adSectionRef"
       v-intersection-observer="onAdsVisible"
     >
-      <!-- Animated Background Patterns -->
-      <div class="absolute inset-0 overflow-hidden">
-        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.02%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+      <!-- Sophisticated Background -->
+      <div class="absolute inset-0">
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900"></div>
+        <!-- Animated Orbs -->
+        <div class="absolute top-20 left-20 w-[500px] h-[500px] bg-gradient-to-r from-amber-500/20 to-orange-500/10 rounded-full blur-[100px] animate-pulse"></div>
+        <div class="absolute bottom-20 right-20 w-[400px] h-[400px] bg-gradient-to-r from-emerald-500/15 to-teal-500/10 rounded-full blur-[80px] animate-pulse" style="animation-delay: 2s;"></div>
+        <!-- Grid Pattern -->
+        <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
       </div>
 
       <div class="relative z-10 max-w-7xl mx-auto px-4">
         <!-- Section Header -->
-        <div class="text-center mb-16">
+        <div class="text-center mb-14">
           <div 
-            class="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-3 rounded-full mb-6 opacity-0 -translate-y-4 transition-all duration-700"
+            class="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 backdrop-blur-xl border border-amber-500/20 px-5 py-2.5 rounded-full mb-5 opacity-0 -translate-y-4 transition-all duration-700"
             :class="{ 'opacity-100 translate-y-0': adsVisible }"
           >
-            <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
-            <span class="text-white/80 text-sm font-medium tracking-widest uppercase">Featured Partners</span>
-            <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+            <div class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></div>
+            <span class="text-amber-200/90 text-xs font-semibold tracking-[0.2em] uppercase">Featured Partners</span>
+            <div class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></div>
           </div>
           <h2 
-            class="text-4xl md:text-5xl font-bold text-white mb-4 opacity-0 -translate-y-4 transition-all duration-700 delay-100"
+            class="text-4xl md:text-5xl font-bold mb-4 opacity-0 -translate-y-4 transition-all duration-700 delay-100"
             :class="{ 'opacity-100 translate-y-0': adsVisible }"
           >
-            โฆษณา<span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">พิเศษ</span>
+            <span class="text-white">โฆษณา</span><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400">พิเศษ</span>
           </h2>
           <p 
-            class="text-gray-400 text-lg max-w-2xl mx-auto opacity-0 -translate-y-4 transition-all duration-700 delay-200"
+            class="text-slate-400 text-base max-w-xl mx-auto opacity-0 -translate-y-4 transition-all duration-700 delay-200"
             :class="{ 'opacity-100 translate-y-0': adsVisible }"
           >
-            โปรโมชั่นและข้อเสนอพิเศษจากพันธมิตรของเรา
+            โปรโมชั่นและข้อเสนอสุดพิเศษจากพันธมิตรที่ได้รับการคัดสรร
           </p>
         </div>
 
-        <!-- Top Banner with Parallax Effect -->
+        <!-- Premium Masonry Bento Grid -->
         <div 
-          v-if="ads.banner_top" 
-          class="mb-12 opacity-0 translate-y-8 transition-all duration-1000 delay-300"
+          class="grid grid-cols-4 md:grid-cols-12 auto-rows-[140px] gap-4 opacity-0 translate-y-8 transition-all duration-1000 delay-300"
           :class="{ 'opacity-100 translate-y-0': adsVisible }"
         >
+          <!-- Banner Top - Full Width -->
           <a 
+            v-if="ads.banner_top"
             :href="ads.banner_top.link" 
             target="_blank" 
-            class="block relative rounded-3xl overflow-hidden shadow-2xl group"
-            :style="{ transform: `translateY(${adParallax * 0.1}px)` }"
+            class="col-span-4 md:col-span-12 row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer"
           >
-            <div class="absolute inset-0 bg-gradient-to-r from-black/40 via-transparent to-black/40 z-10"></div>
             <img 
               :src="`http://localhost:5000/uploads/${ads.banner_top.image}`" 
-              class="w-full h-48 md:h-64 object-cover transform group-hover:scale-105 transition-transform duration-1000" 
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
             />
-            <div class="absolute bottom-6 left-8 z-20">
-              <span class="bg-yellow-400 text-black text-xs font-bold px-4 py-2 rounded-full uppercase tracking-wider">Featured</span>
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-black/60"></div>
+            <!-- Content -->
+            <div class="absolute inset-0 flex items-end p-6 md:p-8">
+              <div class="flex items-center gap-4">
+                <span class="px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-bold rounded-full uppercase tracking-wider shadow-lg shadow-amber-500/30">
+                  Featured
+                </span>
+                <span class="text-white/70 text-sm hidden md:inline">คลิกเพื่อดูรายละเอียด</span>
+              </div>
             </div>
+            <!-- Hover Glow -->
+            <div class="absolute inset-0 border-2 border-amber-400/0 rounded-2xl transition-all duration-500 group-hover:border-amber-400/50 group-hover:shadow-[0_0_40px_rgba(251,191,36,0.15)]"></div>
+          </a>
+
+          <!-- Bento 1 - Large Left -->
+          <a 
+            v-if="ads.bento_1"
+            :href="ads.bento_1.link" 
+            target="_blank" 
+            class="col-span-4 md:col-span-7 row-span-3 relative rounded-2xl overflow-hidden group cursor-pointer"
+          >
+            <img 
+              :src="`http://localhost:5000/uploads/${ads.bento_1.image}`" 
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+            />
+            <!-- Glass Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+            <!-- Decorative Corner -->
+            <div class="absolute top-4 right-4 w-20 h-20 border-t-2 border-r-2 border-white/20 rounded-tr-xl"></div>
+            <!-- Content -->
+            <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
+              <span class="inline-block px-3 py-1 mb-3 bg-emerald-500 text-white text-xs font-bold rounded-full shadow-lg shadow-emerald-500/30">
+                Premium Partner
+              </span>
+              <h3 class="text-white text-xl md:text-2xl font-bold mb-2 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                โปรโมชั่นพิเศษสำหรับคุณ
+              </h3>
+              <p class="text-white/60 text-sm transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
+                คลิกเพื่อดูรายละเอียด →
+              </p>
+            </div>
+            <!-- Hover Border -->
+            <div class="absolute inset-0 border-2 border-emerald-400/0 rounded-2xl transition-all duration-500 group-hover:border-emerald-400/40"></div>
+          </a>
+
+          <!-- Bento 2 - Top Right -->
+          <a 
+            v-if="ads.bento_2"
+            :href="ads.bento_2.link" 
+            target="_blank" 
+            class="col-span-2 md:col-span-5 row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer"
+          >
+            <img 
+              :src="`http://localhost:5000/uploads/${ads.bento_2.image}`" 
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+            />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+            <div class="absolute bottom-4 left-4 right-4">
+              <div class="flex items-center gap-2 text-white text-sm font-medium">
+                <span class="w-8 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-400"></span>
+                <span>ข้อเสนอพิเศษ</span>
+              </div>
+            </div>
+            <div class="absolute inset-0 border border-white/10 rounded-2xl group-hover:border-cyan-400/40 transition-colors duration-500"></div>
+          </a>
+
+          <!-- Bento 3 - Middle Right -->
+          <a 
+            v-if="ads.bento_3"
+            :href="ads.bento_3.link" 
+            target="_blank" 
+            class="col-span-2 md:col-span-2 row-span-1 relative rounded-xl overflow-hidden group cursor-pointer"
+          >
+            <img 
+              :src="`http://localhost:5000/uploads/${ads.bento_3.image}`" 
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+            />
+            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
+            <div class="absolute inset-0 border border-white/10 rounded-xl group-hover:border-rose-400/40 transition-colors duration-500"></div>
+          </a>
+
+          <!-- Bento 4 - Bottom Right -->
+          <a 
+            v-if="ads.bento_4"
+            :href="ads.bento_4.link" 
+            target="_blank" 
+            class="col-span-2 md:col-span-3 row-span-1 relative rounded-xl overflow-hidden group cursor-pointer"
+          >
+            <img 
+              :src="`http://localhost:5000/uploads/${ads.bento_4.image}`" 
+              class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+            />
+            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
+            <div class="absolute inset-0 border border-white/10 rounded-xl group-hover:border-violet-400/40 transition-colors duration-500"></div>
           </a>
         </div>
 
-        <!-- Bento Grid with Parallax -->
+        <!-- CTA Below Grid -->
         <div 
-          class="grid grid-cols-1 lg:grid-cols-12 gap-6 opacity-0 translate-y-8 transition-all duration-1000 delay-500"
+          class="text-center mt-10 opacity-0 translate-y-4 transition-all duration-700 delay-700"
           :class="{ 'opacity-100 translate-y-0': adsVisible }"
         >
-          <!-- Main Large Ad -->
-          <div 
-            v-if="ads.bento_1" 
-            class="lg:col-span-7 relative rounded-3xl overflow-hidden shadow-2xl group h-80 md:h-96"
-            :style="{ transform: `translateY(${adParallax * 0.15}px)` }"
-          >
-            <a :href="ads.bento_1.link" target="_blank" class="block h-full">
-              <img 
-                :src="`http://localhost:5000/uploads/${ads.bento_1.image}`" 
-                class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-1000" 
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-              <div class="absolute bottom-8 left-8 right-8 z-10">
-                <span class="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 inline-block">Premium</span>
-                <h3 class="text-white text-2xl font-bold transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                  โปรโมชั่นพิเศษ
-                </h3>
-              </div>
-            </a>
-          </div>
-
-          <!-- Right Column - Stacked Ads -->
-          <div class="lg:col-span-5 space-y-6">
-            <!-- Bento 2 -->
-            <div 
-              v-if="ads.bento_2" 
-              class="relative rounded-2xl overflow-hidden shadow-xl group h-44"
-              :style="{ transform: `translateY(${adParallax * 0.2}px)` }"
-            >
-              <a :href="ads.bento_2.link" target="_blank" class="block h-full">
-                <img 
-                  :src="`http://localhost:5000/uploads/${ads.bento_2.image}`" 
-                  class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" 
-                />
-                <div class="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent"></div>
-                <div class="absolute bottom-4 left-4 z-10">
-                  <span class="text-white text-sm font-semibold">ข้อเสนอพิเศษ →</span>
-                </div>
-              </a>
-            </div>
-
-            <!-- Bento 3 & 4 Row -->
-            <div class="grid grid-cols-2 gap-4">
-              <div 
-                v-if="ads.bento_3" 
-                class="relative rounded-2xl overflow-hidden shadow-xl group h-40"
-                :style="{ transform: `translateY(${adParallax * 0.25}px)` }"
-              >
-                <a :href="ads.bento_3.link" target="_blank" class="block h-full">
-                  <img 
-                    :src="`http://localhost:5000/uploads/${ads.bento_3.image}`" 
-                    class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" 
-                  />
-                  <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-300"></div>
-                </a>
-              </div>
-              <div 
-                v-if="ads.bento_4" 
-                class="relative rounded-2xl overflow-hidden shadow-xl group h-40"
-                :style="{ transform: `translateY(${adParallax * 0.3}px)` }"
-              >
-                <a :href="ads.bento_4.link" target="_blank" class="block h-full">
-                  <img 
-                    :src="`http://localhost:5000/uploads/${ads.bento_4.image}`" 
-                    class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" 
-                  />
-                  <div class="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors duration-300"></div>
-                </a>
-              </div>
-            </div>
-          </div>
+          <p class="text-slate-500 text-sm">
+            ต้องการลงโฆษณากับเรา? 
+            <NuxtLink to="/contacts" class="text-amber-400 hover:text-amber-300 font-medium transition-colors">ติดต่อเรา</NuxtLink>
+          </p>
         </div>
       </div>
 
-      <!-- Bottom Gradient Fade to White (3D depth effect) -->
-      <div class="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-gray-50 to-transparent"></div>
-      
-      <!-- Decorative Wave -->
-      <div class="absolute -bottom-1 left-0 right-0">
-        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full">
-          <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="#F9FAFB"/>
+      <!-- Bottom Transition -->
+      <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-gray-50 to-transparent"></div>
+      <div class="absolute -bottom-px left-0 right-0">
+        <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full">
+          <path d="M0 80L48 72C96 64 192 48 288 42.7C384 37 480 43 576 48C672 53 768 59 864 58.7C960 59 1056 53 1152 50.7C1248 48 1344 48 1392 48L1440 48V80H1392C1344 80 1248 80 1152 80C1056 80 960 80 864 80C768 80 672 80 576 80C480 80 384 80 288 80C192 80 96 80 48 80H0Z" fill="#F9FAFB"/>
         </svg>
       </div>
     </section>

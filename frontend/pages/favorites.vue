@@ -12,14 +12,23 @@
       <!-- Glass Card -->
       <div class="relative max-w-4xl mx-auto px-4 text-center">
         <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-10 shadow-2xl">
-          <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-4">
+          <div 
+            class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-4 opacity-0 translate-y-4 transition-all duration-700"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             <UIcon name="i-heroicons-heart" class="text-rose-300" />
             <span class="text-rose-200 text-sm font-medium tracking-wider uppercase">My Favorites</span>
           </div>
-          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+          <h1 
+            class="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight opacity-0 translate-y-4 transition-all duration-700 delay-100"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             รายการที่<span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-300 to-pink-200">ถูกใจ</span>
           </h1>
-          <p class="text-rose-100/80 text-lg">
+          <p 
+            class="text-rose-100/80 text-lg opacity-0 translate-y-4 transition-all duration-700 delay-200"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             อสังหาริมทรัพย์ที่คุณบันทึกไว้
           </p>
         </div>
@@ -98,10 +107,15 @@ import { useAuthStore } from '~/stores/auth';
 const authStore = useAuthStore();
 const favorites = ref([]);
 const loading = ref(true);
+const mounted = ref(false);
 
 onMounted(async () => {
   if (!authStore.user) return;
   await fetchFavorites();
+  // Trigger fade animation
+  setTimeout(() => {
+    mounted.value = true;
+  }, 100);
 });
 
 const fetchFavorites = async () => {

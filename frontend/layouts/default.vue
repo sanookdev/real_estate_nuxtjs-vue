@@ -123,7 +123,7 @@
           </div>
         </div>
         <div class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-500">
-          © {{ new Date().getFullYear() }} AssetSale. All rights reserved.
+          © {{ new Date().getFullYear() }} {{settingsStore.settings.site_name || 'Default'}}. All rights reserved. Developed by <a href="https://warat-supaporn.vercel.app" target="_blank" class="text-white hover:text-gray-200">Nook Warat Supaporn</a>
         </div>
       </div>
     </footer>

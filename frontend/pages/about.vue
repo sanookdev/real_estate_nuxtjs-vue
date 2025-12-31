@@ -12,14 +12,23 @@
       <!-- Glass Card -->
       <div class="relative max-w-4xl mx-auto px-4 text-center">
         <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-12 shadow-2xl">
-          <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-6">
+          <div 
+            class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-6 opacity-0 translate-y-4 transition-all duration-700"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
             <span class="text-green-200 text-sm font-medium tracking-wider uppercase">AssetSale Story</span>
           </div>
-          <h1 class="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+          <h1 
+            class="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight opacity-0 translate-y-4 transition-all duration-700 delay-100"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             เกี่ยวกับ<span class="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-emerald-200">เรา</span>
           </h1>
-          <p class="text-green-100/80 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+          <p 
+            class="text-green-100/80 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed opacity-0 translate-y-4 transition-all duration-700 delay-200"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             AssetSale คือแพลตฟอร์มสื่อกลางซื้อขายอสังหาริมทรัพย์ที่ทันสมัยที่สุดในประเทศไทย
             มุ่งมั่นยกระดับประสบการณ์การซื้อขายบ้านให้ง่าย โปร่งใส และปลอดภัย
           </p>
@@ -111,11 +120,16 @@
 
 <script setup>
 import { useSettingsStore } from '~/stores/settings';
-import { onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 
 const settingsStore = useSettingsStore();
+const mounted = ref(false);
 
 onMounted(() => {
   settingsStore.fetchSettings();
+  // Trigger fade animation after a short delay
+  setTimeout(() => {
+    mounted.value = true;
+  }, 100);
 });
 </script>

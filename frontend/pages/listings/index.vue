@@ -12,14 +12,23 @@
       <!-- Glass Card -->
       <div class="relative max-w-4xl mx-auto px-4 text-center">
         <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl">
-          <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-4">
+          <div 
+            class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-4 opacity-0 translate-y-4 transition-all duration-700"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             <UIcon name="i-heroicons-magnifying-glass" class="text-amber-300" />
             <span class="text-amber-200 text-sm font-medium tracking-wider uppercase">Explore Properties</span>
           </div>
-          <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">
+          <h1 
+            class="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight opacity-0 translate-y-4 transition-all duration-700 delay-100"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             ค้นหา<span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-200">อสังหาริมทรัพย์</span>
           </h1>
-          <p class="text-amber-100/80 text-lg">
+          <p 
+            class="text-amber-100/80 text-lg opacity-0 translate-y-4 transition-all duration-700 delay-200"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
+          >
             พบกับทรัพย์สินคุณภาพกว่า {{ listings.length }} รายการ
           </p>
         </div>
@@ -275,6 +284,7 @@ const authStore = useAuthStore();
 const listings = ref([]);
 const favorites = ref([]);
 const loading = ref(true);
+const mounted = ref(false);
 const sortBy = ref('newest');
 
 // Format date helper
@@ -435,6 +445,10 @@ onMounted(async () => {
     console.error('Failed to fetch listings', error);
   } finally {
     loading.value = false;
+    // Trigger fade animation
+    setTimeout(() => {
+      mounted.value = true;
+    }, 100);
   }
 });
 

@@ -12,14 +12,24 @@
       <div class="relative max-w-7xl mx-auto px-4">
         <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
-            <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-4">
+            <div 
+              class="inline-flex items-center gap-2 bg-white/10 backdrop-blur px-4 py-2 rounded-full mb-4 opacity-0 translate-y-4 transition-all duration-700"
+              :class="{ 'opacity-100 translate-y-0': mounted }"
+            >
               <UIcon name="i-heroicons-squares-2x2" class="text-emerald-400" />
               <span class="text-emerald-200 text-sm font-medium tracking-wider uppercase">Dashboard</span>
             </div>
-            <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">
+            <h1 
+              class="text-3xl md:text-4xl font-bold text-white mb-2 opacity-0 translate-y-4 transition-all duration-700 delay-100"
+              :class="{ 'opacity-100 translate-y-0': mounted }"
+            >
               แดชบอร์ดของ<span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200">ฉัน</span>
             </h1>
-            <div v-if="authStore.user" class="mt-2 flex items-center gap-2">
+            <div 
+              v-if="authStore.user" 
+              class="mt-2 flex items-center gap-2 opacity-0 translate-y-4 transition-all duration-700 delay-200"
+              :class="{ 'opacity-100 translate-y-0': mounted }"
+            >
               <span class="text-gray-400">สถานะ:</span>
               <span 
                 class="px-3 py-1 rounded-full text-sm font-medium backdrop-blur"
@@ -36,7 +46,8 @@
           <NuxtLink 
             v-if="authStore.user && authStore.user.status === 'approved'" 
             to="/listings/new" 
-            class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2"
+            class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2 opacity-0 translate-y-4 transition-all duration-700 delay-300"
+            :class="{ 'opacity-100 translate-y-0': mounted }"
           >
             <i class="fas fa-plus"></i> ลงประกาศใหม่
           </NuxtLink>
@@ -157,6 +168,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 const listings = ref([]);
 const loading = ref(true);
+const mounted = ref(false);
 
 onMounted(async () => {
     if (!authStore.token) {
@@ -164,6 +176,10 @@ onMounted(async () => {
         return;
     }
     await fetchListings();
+    // Trigger fade animation
+    setTimeout(() => {
+        mounted.value = true;
+    }, 100);
 });
 
 const fetchListings = async () => {
