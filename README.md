@@ -1,138 +1,234 @@
 # AssetSale Platform
 
-แพลตฟอร์มซื้อขายอสังหาริมทรัพย์ครบวงจร พัฒนาด้วยเทคโนโลยี Modern Web Apps โดยแยกส่วน Frontend และ Backend อย่างชัดเจน
+แพลตฟอร์มซื้อขายอสังหาริมทรัพย์ครบวงจร พัฒนาด้วยเทคโนโลยี Modern Web Apps
 
 ## 🏗️ Tech Stack
 
-### Frontend (User Interface)
+### Frontend
 - **Framework:** Nuxt.js 3 / Vue.js 3
-- **Styling:** Tailwind CSS (Modern Utility-first CSS)
+- **Styling:** Tailwind CSS
 - **State Management:** Pinia
-- **ICONS:** FontAwesome (via CDN) & Nuxt Icons
+- **Icons:** FontAwesome & Nuxt Icons
 
-### Backend (API & Server)
+### Backend
 - **Runtime:** Node.js
 - **Framework:** Express.js
 - **Database:** MySQL
 - **Authentication:** JWT (JSON Web Tokens)
 - **File Upload:** Multer
-- **Email:** Nodemailer
 
 ---
 
-## 📂 Project Structure (โครงสร้างโปรเจ็ค)
+## � Quick Start (ติดตั้งเครื่องใหม่)
 
-### 1. Root Directory
-`asset_sale/` - โฟลเดอร์หลักของโปรเจ็ค
-- `frontend/` - โค้ดส่วนหน้าบ้านเว็บไซต์
-- `backend/` - โค้ดส่วนหลังบ้านและ API
-
-### 2. Frontend Structure (`/frontend`)
-```
-frontend/
-├── layouts/          # Template หลักของหน้าเว็บ (Navbar, Footer)
-│   └── default.vue   # Layout พื้นฐานที่ใช้ทุกหน้า
-├── pages/            # หน้าเว็บไซต์หลัก (Routing)
-│   ├── index.vue     # หน้าแรก (Home)
-│   ├── listings/     # หน้าแสดงรายการประกาศ
-│   ├── admin/        # ส่วนจัดการของผู้ดูแลระบบ (Admin Panel)
-│   │   ├── index.vue # Dashboard รวม
-│   │   └── settings.vue # หน้าตั้งค่าระบบ
-│   ├── about.vue     # หน้าเกี่ยวกับเรา
-│   ├── contacts.vue  # หน้าติดต่อเรา
-│   ├── login.vue     # เข้าสู่ระบบ
-│   └── register.vue  # สมัครสมาชิก
-├── stores/           # ระบบจัดการ State กลาง (Pinia)
-│   └── auth.js       # จัดการสถานะ Login/User Role
-├── public/           # ไฟล์ Static (รูปภาพ, ไอคอน)
-├── utils/            # ฟังก์ชันช่วยเหลือ
-│   └── thailandAddresses.js # ข้อมูลจังหวัด/อำเภอ
-└── nuxt.config.ts    # การตั้งค่า Nuxt Project
-```
-
-### 3. Backend Structure (`/backend`)
-```
-backend/
-├── config/           # การตั้งค่าติดต่อฐานข้อมูล
-│   └── db.js         # Connection Pool ของ MySQL
-├── controllers/      # Logic การทำงานหลักของ API
-│   ├── authController.js     # สมัคร/เข้าสู่ระบบ
-│   ├── listingController.js  # จัดการประกาศ
-│   ├── userController.js     # จัดการผู้ใช้
-│   └── settingsController.js # จัดการตั้งค่าระบบ
-├── models/           # จำลองโครงสร้างข้อมูลเพื่อคุยกับ DB
-│   ├── userModel.js
-│   ├── listingModel.js
-│   └── settingsModel.js
-├── routes/           # กำหนด URL Endpoints ของ API
-│   ├── auth.js
-│   ├── listings.js
-│   ├── users.js
-│   └── settings.js
-├── middleware/       # ตัวกรองก่อนเข้าถึง Controller
-│   ├── authMiddleware.js     # ตรวจสอบ Token (Login)
-│   └── uploadMiddleware.js   # จัดการอัปโหลดไฟล์
-├── services/         # บริการเสริม
-│   └── emailService.js       # ระบบส่งเมล (Nodemailer)
-├── uploads/          # โฟลเดอร์เก็บรูปภาพที่ User อัปโหลด
-├── .env              # เก็บค่าความลับ (DB Password, JWT Secret)
-└── server.js         # Entry Point หลักสำหรับรัน Server
-```
-
----
-
-## 🚀 Getting Started (การเริ่มต้นใช้งาน)
-
-### 1. Backend Setup
+### ขั้นตอนทั้งหมด
 ```bash
+# 1. Clone project
+git clone <your-repo-url> asset_sale
+cd asset_sale
+
+# 2. Setup Backend
 cd backend
-npm install        # ติดตั้ง Dependencies
-# ตั้งค่าไฟล์ .env ให้ถูกต้อง (DB connections, JWT Secret etc.)
-npm start          # รัน Server (ปกติ)
-# หรือ
-nodemon .          # รัน Server แบบ Dev (Restart อัตโนมัติเมื่อแก้โค้ด)
-```
-*Backend จะรันที่ Port: 5000*
+npm install
+cp .env.example .env      # คัดลอกไฟล์ config ตัวอย่าง
+# แก้ไข .env ตามค่าเครื่องใหม่
 
-### 2. Frontend Setup
-```bash
-cd frontend
-npm install        # ติดตั้ง Dependencies
-npm run dev        # รัน Server โหมด Development
+# 3. Setup Database (สำคัญ!)
+node setupDb.js --seed    # สร้างตาราง + ข้อมูลตัวอย่าง
+
+# 4. Setup Frontend
+cd ../frontend
+npm install
+
+# 5. รัน Development
+cd ..
+npm run dev               # รันทั้ง Backend + Frontend พร้อมกัน
 ```
-*Frontend จะรันที่ Port: 3000 (http://localhost:3000)*
 
 ---
 
-## ✨ Key Features (ฟีเจอร์เด่น)
+## ⚙️ การตั้งค่า .env (สำคัญมาก!)
 
-1.  **Authentication & Roles:**
-    - แยกผู้ใช้งานทั่วไป (User) และผู้ดูแลระบบ (Admin/Superadmin)
-    - ระบบ Login/Register พร้อมการอนุมัติผู้ใช้
-
-2.  **Listing Management:**
-    - ค้นหาและกรองอสังหาฯ ตามจังหวัด, ประเภท, ราคา
-    - แสดงผลแบบ Grid และรายละเอียดเจาะลึก
-
-3.  **Modern UI/UX:**
-    - Parallax Scrolling Effects
-    - Responsive Design (รองรับมือถือ)
-    - Scroll-to-Top Navigation
-
-4.  **System Settings:**
-    - ตั้งค่าเว็บไซต์, อีเมล, SMTP ได้ผ่านหน้า Admin Dashboard
-    - ระบบ Priority: ใช้ค่าจาก DB ก่อนไฟล์ .env
-
----
-
-## 🔒 Environment Variables (.env)
-ตัวอย่างการตั้งค่าใน `backend/.env`:
+### Backend `.env` Configuration
 ```env
-DB_HOST=localhost
+# Database
+DB_HOST=localhost        # หรือ IP ของ MySQL server
 DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=asset_sale
-JWT_SECRET=your_jwt_secret_key
+
+# JWT Secret (ใช้สร้าง token - ควรตั้งให้ซับซ้อน)
+JWT_SECRET=your_super_secret_key_here_change_this
+
+# SMTP (สำหรับส่งอีเมล - optional)
 SMTP_HOST=smtp.gmail.com
-# ...
+SMTP_PORT=587
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
 ```
+
+### ✅ ใช่! แค่แก้ .env แล้วรัน setupDb.js ก็พอ!
+
+---
+
+## 🗄️ Database Setup (3 วิธี)
+
+### วิธีที่ 1: ใช้ Node.js Script (แนะนำ ✨)
+```bash
+cd backend
+
+# สร้างตารางอย่างเดียว
+node setupDb.js
+
+# สร้างตาราง + ข้อมูลตัวอย่าง (แนะนำสำหรับเครื่องใหม่)
+node setupDb.js --seed
+
+# Reset ทุกอย่าง (ล้าง + สร้างใหม่ + seed)
+node setupDb.js --reset
+```
+
+### วิธีที่ 2: Import SQL ตรง
+```bash
+# ผ่าน MySQL CLI
+mysql -u root -p < backend/database/schema.sql
+
+# หรือ Import ผ่าน phpMyAdmin / MySQL Workbench
+# file: backend/database/schema.sql
+```
+
+### วิธีที่ 3: Manual (สร้างเอง)
+1. สร้าง Database ชื่อ `asset_sale`
+2. รัน `node setupDb.js` เพื่อสร้างตาราง
+
+---
+
+## 👤 Default Accounts (หลัง seed)
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Superadmin** | superadmin@assetsale.com | admin123 |
+| **Admin** | admin@assetsale.com | admin123 |
+| **User** | user@assetsale.com | user123 |
+
+> ⚠️ **สำคัญ:** เปลี่ยนรหัสผ่านหลังจาก deploy ขึ้น production!
+
+---
+
+## 📂 Database Tables
+
+| Table | Description |
+|-------|-------------|
+| `users` | ผู้ใช้งาน, role, status |
+| `listings` | ประกาศอสังหา (ที่อยู่, สิ่งอำนวยความสะดวก, สถานะ) |
+| `favorites` | รายการโปรดของผู้ใช้ |
+| `ads` | โฆษณา (banner, bento grid) |
+| `settings` | ตั้งค่าเว็บไซต์ |
+| `contact_messages` | ข้อความติดต่อจากหน้าเว็บ |
+
+---
+
+## 🏃 Running the App
+
+### Development Mode
+```bash
+# รันทั้งคู่พร้อมกัน (root directory)
+npm run dev
+
+# หรือรันแยก
+cd backend && npm start     # Port: 5000
+cd frontend && npm run dev  # Port: 3000
+```
+
+### Production Build
+```bash
+# Frontend
+cd frontend
+npm run build
+npm run preview  # หรือใช้ PM2/nginx
+
+# Backend  
+cd backend
+npm start        # หรือใช้ PM2
+```
+
+---
+
+## 📂 Project Structure
+
+```
+asset_sale/
+├── backend/
+│   ├── config/           # Database connection
+│   ├── controllers/      # API logic
+│   ├── database/         # SQL schema files
+│   ├── middleware/       # Auth, upload middleware
+│   ├── models/           # Database models
+│   ├── routes/           # API endpoints
+│   ├── services/         # Email service
+│   ├── uploads/          # Uploaded images
+│   ├── .env              # Environment config
+│   ├── setupDb.js        # Database setup script
+│   └── server.js         # Entry point
+│
+├── frontend/
+│   ├── layouts/          # Layout templates
+│   ├── pages/            # Page components
+│   ├── stores/           # Pinia stores
+│   ├── utils/            # Helper functions
+│   └── nuxt.config.ts    # Nuxt configuration
+│
+├── package.json          # Root scripts
+└── README.md             # This file
+```
+
+---
+
+## ✨ Key Features
+
+- 🔐 **Authentication:** Login/Register with role-based access (User/Admin/Superadmin)
+- 🏠 **Listing Management:** CRUD อสังหาริมทรัพย์ พร้อมการอนุมัติ
+- ❤️ **Favorites:** บันทึกรายการโปรด
+- 📢 **Ads Management:** จัดการโฆษณา bento grid
+- ⚙️ **Settings:** ตั้งค่าเว็บไซต์ผ่าน Admin panel
+- 🎨 **Modern UI:** Glassmorphism, Parallax effects, Responsive
+
+---
+
+## � Troubleshooting
+
+### ปัญหาที่พบบ่อย
+
+**1. ต่อ Database ไม่ได้**
+```bash
+# ตรวจสอบ MySQL running
+sudo systemctl status mysql
+
+# ตรวจสอบ .env ถูกต้อง
+cat backend/.env
+```
+
+**2. Port 5000/3000 ถูกใช้งาน**
+```bash
+# หา process ที่ใช้ port
+lsof -i :5000
+kill -9 <PID>
+```
+
+**3. bcrypt error ตอน install**
+```bash
+# ติดตั้ง build tools
+sudo apt-get install build-essential
+npm rebuild bcrypt --build-from-source
+```
+
+---
+
+## 📝 License
+
+MIT License - Free to use and modify.
+
+---
+
+## 🤝 Support
+
+หากพบปัญหาหรือต้องการความช่วยเหลือ กรุณาติดต่อทีมพัฒนา
