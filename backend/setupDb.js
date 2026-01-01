@@ -21,11 +21,20 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
+// Check if using TiDB Cloud (requires SSL)
+const isTiDB = process.env.DB_HOST && process.env.DB_HOST.includes('tidbcloud.com');
+
 const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
+  port: process.env.DB_PORT || 3306,
+  ...(isTiDB ? { ssl: { rejectUnauthorized: true } } : {})
 };
+
+if (isTiDB) {
+  console.log('🔒 TiDB Cloud detected - SSL enabled');
+}
 
 const DB_NAME = process.env.DB_NAME || 'asset_sale';
 
@@ -42,11 +51,14 @@ const TABLES = {
             password_hash VARCHAR(255) NOT NULL,
             role ENUM('user', 'admin', 'superadmin') DEFAULT 'user',
             status ENUM('pending', 'approved', 'blocked') DEFAULT 'pending',
+            email_verified_at DATETIME DEFAULT NULL,
+            verification_token VARCHAR(255) DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_email (email),
             INDEX idx_role (role),
-            INDEX idx_status (status)
+            INDEX idx_status (status),
+            INDEX idx_verification_token (verification_token)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `,
 
@@ -154,21 +166,24 @@ async function getSeedData() {
         email: 'superadmin@assetsale.com',
         password_hash: adminPassword,
         role: 'superadmin',
-        status: 'approved'
+        status: 'approved',
+        email_verified_at: new Date()
       },
       {
         username: 'admin',
         email: 'admin@assetsale.com',
         password_hash: adminPassword,
         role: 'admin',
-        status: 'approved'
+        status: 'approved',
+        email_verified_at: new Date()
       },
       {
         username: 'demo_user',
         email: 'user@assetsale.com',
         password_hash: userPassword,
         role: 'user',
-        status: 'approved'
+        status: 'approved',
+        email_verified_at: new Date()
       }
     ],
 
@@ -304,8 +319,8 @@ async function seedData(db) {
   console.log('   → Inserting users...');
   for (const user of data.users) {
     await db.execute(
-      'INSERT INTO users (username, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)',
-      [user.username, user.email, user.password_hash, user.role, user.status]
+      'INSERT INTO users (username, email, password_hash, role, status, email_verified_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [user.username, user.email, user.password_hash, user.role, user.status, user.email_verified_at]
     );
   }
   console.log(`   ✓ ${data.users.length} users created`);
@@ -361,19 +376,29 @@ async function setupDatabase() {
   console.log('============================================\n');
 
   try {
-    // Connect without database first
-    const connection = await mysql.createConnection(dbConfig);
+    let db;
 
-    // Create Database if not exists
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-    console.log(`✓ Database "${DB_NAME}" ready.\n`);
-    await connection.end();
+    if (isTiDB) {
+      // TiDB Cloud Serverless: Cannot create database, connect directly to existing one
+      console.log(`🔒 TiDB Cloud detected - connecting to existing database "${DB_NAME}"...\n`);
+      db = await mysql.createConnection({
+        ...dbConfig,
+        database: DB_NAME
+      });
+      console.log(`✓ Connected to TiDB Cloud database "${DB_NAME}".\n`);
+    } else {
+      // Standard MySQL: Create database if not exists
+      const connection = await mysql.createConnection(dbConfig);
+      await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+      console.log(`✓ Database "${DB_NAME}" ready.\n`);
+      await connection.end();
 
-    // Connect to the specific database
-    const db = await mysql.createConnection({
-      ...dbConfig,
-      database: DB_NAME
-    });
+      // Connect to the specific database
+      db = await mysql.createConnection({
+        ...dbConfig,
+        database: DB_NAME
+      });
+    }
 
     if (shouldReset) {
       await dropAllTables(db);

@@ -103,8 +103,11 @@ class ListingModel {
             params.push(filters.dateTo + ' 23:59:59');
         }
 
-        query += ' ORDER BY l.created_at DESC LIMIT ? OFFSET ?';
-        params.push(String(limit), String(offset));
+        // TiDB doesn't support prepared statement placeholders for LIMIT/OFFSET
+        // So we embed the values directly with proper validation
+        const limitNum = parseInt(limit) || 10;
+        const offsetNum = parseInt(offset) || 0;
+        query += ` ORDER BY l.created_at DESC LIMIT ${limitNum} OFFSET ${offsetNum}`;
 
         const [rows] = await db.execute(query, params);
         return rows;
