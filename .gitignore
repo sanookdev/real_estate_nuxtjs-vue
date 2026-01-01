@@ -16,3 +16,6 @@ backend/uploads/
 dist/
 .DS_Store
 *.log
+
+# Validations
+backend/.envtidb

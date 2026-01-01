@@ -97,13 +97,13 @@
     <!-- 🔥 HOT SALE Section -->
     <section 
       v-if="pinnedListings.length > 0" 
-      class="py-20 relative overflow-hidden"
+      class="py-32 relative overflow-hidden"
       v-intersection-observer="onHotSaleVisible"
     >
       <!-- Stronger Soft Gradient Background -->
       <div class="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-100"></div>
       
-      <!-- Restored Fire Particles (Subtle) -->
+        <!-- Restored Fire Particles (Subtle) -->
       <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute bottom-0 left-1/4 w-4 h-4 bg-orange-300 rounded-full animate-fire-particle opacity-40"></div>
         <div class="absolute bottom-0 left-1/3 w-3 h-3 bg-red-300 rounded-full animate-fire-particle-2 opacity-30"></div>
@@ -112,32 +112,32 @@
         <div class="absolute bottom-0 right-1/4 w-3 h-3 bg-red-200 rounded-full animate-fire-particle-2 opacity-30"></div>
         
         <!-- Large ambient glows -->
-        <div class="absolute top-1/3 left-10 w-64 h-64 bg-orange-300/20 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute top-1/4 right-20 w-80 h-80 bg-amber-300/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+        <div class="absolute top-1/3 left-10 w-96 h-96 bg-orange-300/10 rounded-full blur-[100px] animate-pulse"></div>
+        <div class="absolute top-1/4 right-20 w-[500px] h-[500px] bg-amber-300/10 rounded-full blur-[120px] animate-pulse" style="animation-delay: 1s;"></div>
       </div>
 
       <div class="relative z-10 max-w-7xl mx-auto px-4">
         <!-- Section Header -->
-        <div class="text-center mb-12">
+        <div class="text-center mb-16 md:mb-24">
           <div 
-            class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-amber-50 backdrop-blur-md border border-orange-200/50 px-6 py-2 rounded-full mb-6 opacity-0 -translate-y-4 transition-all duration-700 shadow-sm"
+            class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-amber-50 backdrop-blur-md border border-orange-200/50 px-6 py-2.5 rounded-full mb-8 opacity-0 translate-y-8 transition-all duration-1000 shadow-sm"
             :class="{ 'opacity-100 translate-y-0': hotSaleVisible }"
           >
             <span class="text-xl animate-pulse">🔥</span>
-            <span class="font-bold tracking-wide uppercase text-sm text-orange-800">Hot Deals</span>
+            <span class="font-bold tracking-widest uppercase text-xs text-orange-800">Hot Deals</span>
           </div>
           
           <h2 
-            class="text-4xl md:text-5xl font-bold mb-4 opacity-0 -translate-y-4 transition-all duration-700 delay-100 text-gray-900"
+            class="text-5xl md:text-6xl font-bold mb-6 opacity-0 translate-y-8 transition-all duration-1000 delay-100 text-gray-900 tracking-tight"
             :class="{ 'opacity-100 translate-y-0': hotSaleVisible }"
           >
             ประกาศ<span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-500">ยอดนิยม</span>
           </h2>
           <p 
-            class="text-gray-600 text-lg max-w-xl mx-auto opacity-0 -translate-y-4 transition-all duration-700 delay-200 leading-relaxed"
+            class="text-gray-600 text-xl max-w-2xl mx-auto opacity-0 translate-y-8 transition-all duration-1000 delay-200 leading-relaxed font-light"
             :class="{ 'opacity-100 translate-y-0': hotSaleVisible }"
           >
-            ทรัพย์สินคุณภาพ ราคาดี ที่เราคัดสรรมาเพื่อคุณโดยเฉพาะ
+            ค้นพบทรัพย์สินคุณภาพเยี่ยมในราคาสุดพิเศษ ที่เราคัดสรรมาเพื่อคุณโดยเฉพาะ โอกาสดีๆ ที่ไม่ควรพลาด
           </p>
         </div>
 
@@ -222,21 +222,30 @@
     </section>
 
      <!-- Featured Properties -->
-    <section class="py-20 bg-gray-50 relative">
-      <div class="max-w-7xl mx-auto px-4" v-intersection-observer="onListingsVisible">
-        <div class="flex justify-between items-end mb-12">
-          <div>
+    <section class="py-32 bg-gray-50 relative overflow-hidden">
+       <!-- Subtle Pattern -->
+      <div class="absolute inset-0 opacity-[0.4]" style="background-image: radial-gradient(#e5e7eb 1px, transparent 1px); background-size: 32px 32px;"></div>
+      
+      <div class="max-w-7xl mx-auto px-4 relative z-10" v-intersection-observer="onListingsVisible">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+          <div class="max-w-2xl">
+            <span 
+              class="inline-block text-green-600 font-bold tracking-widest uppercase text-sm mb-4 opacity-0 translate-y-4 transition-all duration-700"
+              :class="{ 'opacity-100 translate-y-0': listingsVisible }"
+            >
+              Selected For You
+            </span>
             <h2 
-              class="text-4xl font-bold text-gray-900 opacity-0 -translate-x-8 transition-all duration-700"
-              :class="{ 'opacity-100 translate-x-0': listingsVisible }"
+              class="text-4xl md:text-5xl font-bold text-gray-900 opacity-0 translate-y-8 transition-all duration-1000 delay-100 leading-tight"
+              :class="{ 'opacity-100 translate-y-0': listingsVisible }"
             >
               ทรัพย์สินแนะนำ
             </h2>
             <p 
-              class="text-gray-500 mt-2 opacity-0 -translate-x-8 transition-all duration-700 delay-100"
-              :class="{ 'opacity-100 translate-x-0': listingsVisible }"
+              class="text-gray-500 text-lg mt-4 opacity-0 translate-y-8 transition-all duration-1000 delay-200 font-light"
+              :class="{ 'opacity-100 translate-y-0': listingsVisible }"
             >
-              คัดสรรอสังหาริมทรัพย์คุณภาพเพื่อคุณ
+              คัดสรรอสังหาริมทรัพย์คุณภาพ เพื่อการอยู่อาศัยและการลงทุนที่คุ้มค่า
             </p>
           </div>
           <NuxtLink 
@@ -322,7 +331,7 @@
     <!-- 🎨 Premium Ads Gallery Section -->
     <section 
       v-if="ads.banner_top || ads.bento_1 || ads.bento_2" 
-      class="relative py-20 overflow-hidden"
+      class="relative py-32 overflow-hidden"
       ref="adSectionRef"
       v-intersection-observer="onAdsVisible"
     >
@@ -497,7 +506,7 @@
     </section>
    
    <!-- Parallax Area Gallery -->
-    <section class="min-h-[80vh] relative overflow-hidden flex items-center justify-center py-24">
+    <section class="min-h-screen relative overflow-hidden flex items-center justify-center py-32">
       <!-- Expanding Background (Slide Up Effect) -->
       <div 
         class="absolute inset-0 bg-[url('/images/hero-banner.png')] bg-cover bg-center transition-all duration-1000 ease-out z-0"
@@ -557,20 +566,32 @@
       </div>
     </section>
     <!-- Categories Section with Micro-interactions -->
-    <section class="py-20 bg-white relative overflow-hidden" ref="categoriesSection">
-      <div class="max-w-7xl mx-auto px-4" v-intersection-observer="onCategoriesVisible">
-        <h2 
-          class="text-4xl font-bold text-center text-gray-900 mb-4 opacity-0 translate-y-8 transition-all duration-700"
-          :class="{ 'opacity-100 translate-y-0': categoriesVisible }"
-        >
-          เลือกชมตามหมวดหมู่
-        </h2>
-        <p 
-          class="text-center text-gray-500 mb-12 opacity-0 translate-y-8 transition-all duration-700 delay-100"
-          :class="{ 'opacity-100 translate-y-0': categoriesVisible }"
-        >
-          ค้นหาอสังหาริมทรัพย์ที่คุณต้องการได้ง่ายๆ
-        </p>
+    <section class="py-32 bg-white relative overflow-hidden" ref="categoriesSection">
+      <!-- Decorative Blobs -->
+      <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-gray-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-60 pointer-events-none"></div>
+      <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-green-50 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 opacity-60 pointer-events-none"></div>
+
+      <div class="max-w-7xl mx-auto px-4 relative z-10" v-intersection-observer="onCategoriesVisible">
+        <div class="text-center mb-16 md:mb-24">
+           <span 
+              class="inline-block text-green-600 font-bold tracking-widest uppercase text-sm mb-4 opacity-0 translate-y-4 transition-all duration-700"
+              :class="{ 'opacity-100 translate-y-0': categoriesVisible }"
+            >
+              Categories
+            </span>
+            <h2 
+              class="text-4xl md:text-5xl font-bold text-gray-900 mb-6 opacity-0 translate-y-8 transition-all duration-1000 delay-100"
+              :class="{ 'opacity-100 translate-y-0': categoriesVisible }"
+            >
+              เลือกชมตามหมวดหมู่
+            </h2>
+            <p 
+              class="text-gray-500 text-xl max-w-2xl mx-auto opacity-0 translate-y-8 transition-all duration-1000 delay-200 font-light"
+              :class="{ 'opacity-100 translate-y-0': categoriesVisible }"
+            >
+              ค้นหาอสังหาริมทรัพย์ที่คุณต้องการได้ง่ายๆ แบ่งตามประเภทการใช้งาน
+            </p>
+        </div>
         
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div 
@@ -599,30 +620,45 @@
       </div>
     </section>
 
- 
 
-
-
-   
-
-    <!-- CTA Section -->
-    <section class="py-24 bg-gray-900 text-white relative overflow-hidden">
-      <div class="absolute inset-0 bg-gradient-to-r from-green-600/20 to-yellow-500/20"></div>
-      <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.03%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+    <!-- CTA Section (Premium Dark) -->
+    <section class="py-32 relative overflow-hidden bg-slate-900">
+      <!-- Sophisticated Background -->
+      <div class="absolute inset-0 bg-gradient-to-b from-slate-900 to-black"></div>
       
+      <!-- Subtle Ambient Light -->
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-4xl bg-blue-500/5 blur-[120px] rounded-full pointer-events-none"></div>
+
       <div class="max-w-4xl mx-auto text-center px-4 relative z-10">
-        <h2 class="text-4xl md:text-5xl font-bold mb-6">รู้ก่อนใคร !</h2>
-        <p class="text-xl text-gray-300 mb-10">ลงทะเบียนรับข่าวประกาศใหม่ทันที</p>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <input 
-            v-model="email" 
-            type="email"
-            placeholder="อีเมลของคุณ" 
-            class="px-6 py-4 rounded-xl text-gray-900 w-full sm:w-80 bg-white focus:ring-2 focus:ring-yellow-400 transition-all hover:shadow-lg"
-          />
-          <button class="bg-gradient-to-r from-yellow-400 to-yellow-500 text-black font-bold px-8 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all transform hover:scale-105 hover:shadow-xl">
-            สมัครรับข่าวสาร
-          </button>
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/50 border border-slate-700 backdrop-blur-sm mb-8">
+          <span class="flex h-2 w-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="text-slate-300 text-xs font-medium tracking-widest uppercase">Newsletter</span>
+        </div>
+
+        <h2 class="text-4xl md:text-5xl font-bold mb-6 text-white tracking-tight">
+          ไม่พลาดทุกโอกาส<span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500">การลงทุน</span>
+        </h2>
+        
+        <p class="text-lg text-slate-400 mb-12 font-light max-w-2xl mx-auto leading-relaxed">
+          รับข่าวสารอสังหาริมทรัพย์ระดับพรีเมียมและข้อเสนอพิเศษก่อนใคร ส่งตรงถึงกล่องข้อความของคุณ
+        </p>
+        
+        <div class="relative max-w-lg mx-auto">
+          <!-- Glass Input Container -->
+          <div class="p-1.5 rounded-full bg-slate-800/50 border border-slate-700 backdrop-blur-xl flex flex-col sm:flex-row gap-2 transition-all focus-within:ring-2 focus-within:ring-amber-500/50 focus-within:border-amber-500/50">
+            <input 
+              v-model="email" 
+              type="email"
+              placeholder="กรอกอีเมลของคุณ" 
+              class="flex-1 px-6 py-3 rounded-full bg-transparent text-white placeholder-slate-500 border-none outline-none focus:ring-0 w-full"
+            />
+            <button class="px-8 py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-900 font-bold transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/40 transform hover:-translate-y-0.5 whitespace-nowrap">
+              สมัครรับข่าวสาร
+            </button>
+          </div>
+          <p class="text-slate-600 text-xs mt-6">
+            *เราเคารพความเป็นส่วนตัวของคุณ ข้อมูลจะไม่ถูกเปิดเผย
+          </p>
         </div>
       </div>
     </section>
