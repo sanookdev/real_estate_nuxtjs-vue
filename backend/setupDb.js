@@ -42,11 +42,17 @@ const TABLES = {
             password_hash VARCHAR(255) NOT NULL,
             role ENUM('user', 'admin', 'superadmin') DEFAULT 'user',
             status ENUM('pending', 'approved', 'blocked') DEFAULT 'pending',
+            email_verified_at DATETIME DEFAULT NULL,
+            verification_token VARCHAR(255) DEFAULT NULL,
+            reset_password_token VARCHAR(255) DEFAULT NULL,
+            reset_password_expires DATETIME DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_email (email),
             INDEX idx_role (role),
-            INDEX idx_status (status)
+            INDEX idx_status (status),
+            INDEX idx_verification_token (verification_token),
+            INDEX idx_reset_token (reset_password_token)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `,
 
@@ -69,6 +75,8 @@ const TABLES = {
             subdistrict VARCHAR(100),
             postal_code VARCHAR(10),
             status ENUM('pending', 'active', 'rejected', 'sold', 'inactive') DEFAULT 'pending',
+            is_pinned BOOLEAN DEFAULT FALSE,
+            pinned_at DATETIME DEFAULT NULL,
             expires_at DATETIME,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -77,7 +85,8 @@ const TABLES = {
             INDEX idx_type (type),
             INDEX idx_province (province),
             INDEX idx_price (price),
-            INDEX idx_created_at (created_at)
+            INDEX idx_created_at (created_at),
+            INDEX idx_is_pinned (is_pinned)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `,
 
@@ -154,21 +163,24 @@ async function getSeedData() {
         email: 'superadmin@assetsale.com',
         password_hash: adminPassword,
         role: 'superadmin',
-        status: 'approved'
+        status: 'approved',
+        email_verified_at: new Date()
       },
       {
         username: 'admin',
         email: 'admin@assetsale.com',
         password_hash: adminPassword,
         role: 'admin',
-        status: 'approved'
+        status: 'approved',
+        email_verified_at: new Date()
       },
       {
         username: 'demo_user',
         email: 'user@assetsale.com',
         password_hash: userPassword,
         role: 'user',
-        status: 'approved'
+        status: 'approved',
+        email_verified_at: new Date()
       }
     ],
 
@@ -304,8 +316,8 @@ async function seedData(db) {
   console.log('   → Inserting users...');
   for (const user of data.users) {
     await db.execute(
-      'INSERT INTO users (username, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)',
-      [user.username, user.email, user.password_hash, user.role, user.status]
+      'INSERT INTO users (username, email, password_hash, role, status, email_verified_at) VALUES (?, ?, ?, ?, ?, ?)',
+      [user.username, user.email, user.password_hash, user.role, user.status, user.email_verified_at]
     );
   }
   console.log(`   ✓ ${data.users.length} users created`);

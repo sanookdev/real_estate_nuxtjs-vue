@@ -105,11 +105,39 @@
             <p class="text-xs text-gray-500 mt-1">รูปภาพใหม่จะถูกเพิ่มต่อท้ายรูปภาพเดิม</p>
           </UFormGroup>
 
-          <!-- Existing Images Preview -->
-          <div v-if="existingImages.length > 0" class="flex gap-2 overflow-x-auto py-2">
-             <div v-for="(img, index) in existingImages" :key="index" class="relative flex-shrink-0 w-24 h-24">
+          <!-- New Images Preview -->
+          <div v-if="newImagePreviews.length > 0" class="mt-4">
+            <p class="text-sm font-medium text-gray-700 mb-2">รูปภาพใหม่ที่เลือก (คลิก X เพื่อลบ)</p>
+            <div class="flex gap-2 flex-wrap">
+              <div v-for="(preview, index) in newImagePreviews" :key="'new-' + index" class="relative group w-24 h-24">
+                <img :src="preview" class="w-full h-full object-cover rounded-lg border-2 border-green-400" />
+                <span class="absolute bottom-0 left-0 right-0 bg-green-500 text-white text-xs text-center py-0.5">ใหม่</span>
+                <button 
+                  type="button"
+                  @click="removeNewImage(index)"
+                  class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600 shadow-md"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Existing Images Preview with Delete Button -->
+          <div v-if="existingImages.length > 0" class="mt-4">
+            <p class="text-sm font-medium text-gray-700 mb-2">รูปภาพปัจจุบัน (คลิก X เพื่อลบ)</p>
+            <div class="flex gap-2 flex-wrap">
+              <div v-for="(img, index) in existingImages" :key="index" class="relative group w-24 h-24">
                 <img :src="`http://localhost:5000/uploads/${img}`" class="w-full h-full object-cover rounded-lg border" />
-             </div>
+                <button 
+                  type="button"
+                  @click="removeImage(index)"
+                  class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold hover:bg-red-600 shadow-md"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="flex justify-end gap-3 mt-8">
@@ -134,6 +162,7 @@ const router = useRouter();
 const authStore = useAuthStore();
 const loading = ref(false);
 const newImages = ref([]);
+const newImagePreviews = ref([]);
 const existingImages = ref([]);
 
 // Address Data State
@@ -251,7 +280,24 @@ const onSubdistrictChange = async () => {
 };
 
 const onFileChange = (e) => {
-  newImages.value = Array.from(e.target.files);
+  const files = Array.from(e.target.files);
+  newImages.value = files;
+  
+  // Generate preview URLs
+  newImagePreviews.value = files.map(file => URL.createObjectURL(file));
+};
+
+// Remove image from existing images list
+const removeImage = (index) => {
+  existingImages.value.splice(index, 1);
+};
+
+// Remove new image from upload list
+const removeNewImage = (index) => {
+  // Revoke the blob URL to free memory
+  URL.revokeObjectURL(newImagePreviews.value[index]);
+  newImages.value.splice(index, 1);
+  newImagePreviews.value.splice(index, 1);
 };
 
 const updateListing = async () => {
@@ -289,6 +335,9 @@ const updateListing = async () => {
     formData.append('district', form.district);
     formData.append('subdistrict', form.subdistrict);
     formData.append('postal_code', form.postal_code);
+    
+    // Send existing images to keep (after user deleted some)
+    formData.append('existingImages', JSON.stringify(existingImages.value));
 
     newImages.value.forEach(file => {
       formData.append('images', file);

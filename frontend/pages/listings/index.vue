@@ -123,6 +123,20 @@
               </div>
             </div>
 
+            <!-- Hot Sale Filter -->
+            <div class="mb-6">
+              <label class="flex items-center gap-2 cursor-pointer group">
+                <input 
+                  type="checkbox" 
+                  v-model="filters.isPinned"
+                  class="w-5 h-5 text-red-600 focus:ring-red-500 rounded border-gray-300"
+                />
+                <span class="text-gray-700 font-medium group-hover:text-red-600 transition-colors flex items-center gap-1">
+                  <span class="text-lg">🔥</span> แสดงเฉพาะ Hot Sale
+                </span>
+              </label>
+            </div>
+
             <!-- Results Count -->
             <div class="pt-4 border-t border-gray-100">
               <p class="text-sm text-gray-500 text-center">
@@ -151,19 +165,20 @@
           </div>
 
           <!-- Loading -->
-          <div v-if="loading" class="flex justify-center py-12">
-            <i class="fas fa-spinner fa-spin text-4xl text-green-600"></i>
+          <div v-if="loading || isFiltering" class="flex flex-col justify-center items-center py-20 animate-fade-in">
+            <i class="fas fa-circle-notch fa-spin text-4xl text-green-600 mb-4"></i>
+            <p class="text-gray-500 animate-pulse">กำลังค้นหา...</p>
           </div>
 
           <!-- Empty State -->
-          <div v-else-if="filteredListings.length === 0" class="bg-white rounded-xl p-12 text-center shadow-sm">
+          <div v-else-if="filteredListings.length === 0" class="bg-white rounded-xl p-12 text-center shadow-sm animate-fade-in">
             <i class="fas fa-search text-5xl text-gray-300 mb-4"></i>
             <p class="text-gray-500 text-lg mb-2">ไม่พบประกาศที่ตรงกับเงื่อนไข</p>
             <button @click="resetFilters" class="text-green-600 hover:text-green-700 font-medium">ล้างตัวกรองทั้งหมด</button>
           </div>
 
           <!-- Listings Grid -->
-          <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 animate-fade-in">
             <NuxtLink 
               v-for="listing in paginatedListings" 
               :key="listing.id" 
@@ -177,8 +192,12 @@
                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <!-- Badges -->
-                <div class="absolute top-3 left-3 flex gap-2">
-                  <span class="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow">
+                <div class="absolute top-3 left-3 flex flex-col gap-2 z-20">
+                  <div v-if="listing.is_pinned" class="flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg shadow-orange-500/30 animate-pulse w-max">
+                    <span class="text-sm">🔥</span>
+                    <span>HOT</span>
+                  </div>
+                  <span class="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow w-max">
                     {{ listing.type }}
                   </span>
                 </div>
@@ -284,6 +303,7 @@ const authStore = useAuthStore();
 const listings = ref([]);
 const favorites = ref([]);
 const loading = ref(true);
+const isFiltering = ref(false);
 const mounted = ref(false);
 const sortBy = ref('newest');
 
@@ -303,7 +323,9 @@ const filters = reactive({
   type: '',
   priceRange: '',
   province: '',
-  condition: ''
+  province: '',
+  condition: '',
+  isPinned: false
 });
 
 const provinces = ref([]);
@@ -354,6 +376,9 @@ const filteredListings = computed(() => {
       if (filters.priceRange === '5m_10m' && (price < 5000000 || price > 10000000)) return false;
       if (filters.priceRange === 'above_10m' && price <= 10000000) return false;
     }
+
+    // Hot Sale filter
+    if (filters.isPinned && !listing.is_pinned) return false;
 
     return true;
   });
@@ -413,8 +438,17 @@ const goToPage = (page) => {
 };
 
 // Reset page when filters change
+let filterTimeout;
+
 watch([filters, sortBy], () => {
+  isFiltering.value = true;
   currentPage.value = 1;
+  
+  // Debounce loading state for nice UX
+  if (filterTimeout) clearTimeout(filterTimeout);
+  filterTimeout = setTimeout(() => {
+    isFiltering.value = false;
+  }, 300);
 });
 
 const resetFilters = () => {
@@ -422,7 +456,9 @@ const resetFilters = () => {
   filters.type = '';
   filters.priceRange = '';
   filters.province = '';
+  filters.province = '';
   filters.condition = '';
+  filters.isPinned = false;
   currentPage.value = 1;
 };
 
@@ -435,11 +471,14 @@ onMounted(async () => {
   if (route.query.province) filters.province = route.query.province;
   if (route.query.priceRange) filters.priceRange = route.query.priceRange;
   if (route.query.condition) filters.condition = route.query.condition;
+  if (route.query.priceRange) filters.priceRange = route.query.priceRange;
+  if (route.query.condition) filters.condition = route.query.condition;
   if (route.query.search) filters.search = route.query.search;
+  if (route.query.isPinned) filters.isPinned = route.query.isPinned === 'true';
 
   try {
     const response = await axios.get('http://localhost:5000/api/listings');
-    listings.value = response.data;
+    listings.value = response.data.listings || [];
     await fetchFavorites();
   } catch (error) {
     console.error('Failed to fetch listings', error);

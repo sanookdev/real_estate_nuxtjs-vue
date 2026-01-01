@@ -22,6 +22,11 @@
             <div v-if="listing.status === 'sold'" class="absolute top-0 left-0 right-0 bg-red-600 text-white text-center py-3 z-10 font-bold text-lg shadow-lg">
               🏷️ ขายแล้ว (SOLD)
             </div>
+            <!-- Hot Badge -->
+            <div v-if="listing.is_pinned" class="absolute top-4 left-4 z-20 flex items-center gap-1 bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg animate-pulse" :class="{ 'top-16': listing.status === 'sold' }">
+              <span class="text-sm">🔥</span>
+              <span>HOT</span>
+            </div>
             <img 
               :src="currentImage ? `http://localhost:5000/uploads/${currentImage}` : 'https://placehold.co/800x600/166534/ffffff?text=Property'" 
               class="w-full h-[450px] object-cover"
@@ -268,8 +273,8 @@ onMounted(async () => {
         }
 
         const allResponse = await axios.get('http://localhost:5000/api/listings');
-        if (allResponse.data) {
-            relatedListings.value = allResponse.data
+        if (allResponse.data && allResponse.data.listings) {
+            relatedListings.value = allResponse.data.listings
                 .filter(item => item.type === listing.value.type && item.id !== listing.value.id)
                 .slice(0, 4); 
         }

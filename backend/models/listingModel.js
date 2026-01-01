@@ -103,6 +103,10 @@ class ListingModel {
             params.push(filters.dateTo + ' 23:59:59');
         }
 
+        if (filters.isPinned === 'true' || filters.isPinned === true) {
+            query += ' AND l.is_pinned = TRUE';
+        }
+
         query += ' ORDER BY l.created_at DESC LIMIT ? OFFSET ?';
         params.push(String(limit), String(offset));
 
@@ -152,8 +156,38 @@ class ListingModel {
             params.push(filters.dateTo + ' 23:59:59');
         }
 
+        if (filters.isPinned === 'true' || filters.isPinned === true) {
+            query += ' AND l.is_pinned = TRUE';
+        }
+
         const [rows] = await db.execute(query, params);
         return rows[0].total;
+    }
+
+    // Get all pinned listings for Hot Sale section
+    static async findPinned() {
+        const [rows] = await db.execute(
+            'SELECT l.*, u.username FROM listings l JOIN users u ON l.user_id = u.id WHERE l.is_pinned = TRUE AND l.status = ? ORDER BY l.pinned_at DESC',
+            ['active']
+        );
+        return rows;
+    }
+
+    // Toggle pin status of a listing
+    static async togglePin(id) {
+        // First get current pin status
+        const [current] = await db.execute('SELECT is_pinned FROM listings WHERE id = ?', [id]);
+        if (current.length === 0) return null;
+
+        const newPinStatus = !current[0].is_pinned;
+        const pinnedAt = newPinStatus ? new Date() : null;
+
+        await db.execute(
+            'UPDATE listings SET is_pinned = ?, pinned_at = ? WHERE id = ?',
+            [newPinStatus, pinnedAt, id]
+        );
+
+        return newPinStatus;
     }
 }
 

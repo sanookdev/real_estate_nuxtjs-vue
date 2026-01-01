@@ -94,6 +94,133 @@
       </div>
     </section>
 
+    <!-- 🔥 HOT SALE Section -->
+    <section 
+      v-if="pinnedListings.length > 0" 
+      class="py-20 relative overflow-hidden"
+      v-intersection-observer="onHotSaleVisible"
+    >
+      <!-- Stronger Soft Gradient Background -->
+      <div class="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-orange-100"></div>
+      
+      <!-- Restored Fire Particles (Subtle) -->
+      <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute bottom-0 left-1/4 w-4 h-4 bg-orange-300 rounded-full animate-fire-particle opacity-40"></div>
+        <div class="absolute bottom-0 left-1/3 w-3 h-3 bg-red-300 rounded-full animate-fire-particle-2 opacity-30"></div>
+        <div class="absolute bottom-0 left-1/2 w-5 h-5 bg-amber-300 rounded-full animate-fire-particle-3 opacity-40"></div>
+        <div class="absolute bottom-0 left-2/3 w-4 h-4 bg-orange-200 rounded-full animate-fire-particle opacity-50"></div>
+        <div class="absolute bottom-0 right-1/4 w-3 h-3 bg-red-200 rounded-full animate-fire-particle-2 opacity-30"></div>
+        
+        <!-- Large ambient glows -->
+        <div class="absolute top-1/3 left-10 w-64 h-64 bg-orange-300/20 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute top-1/4 right-20 w-80 h-80 bg-amber-300/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+      </div>
+
+      <div class="relative z-10 max-w-7xl mx-auto px-4">
+        <!-- Section Header -->
+        <div class="text-center mb-12">
+          <div 
+            class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-amber-50 backdrop-blur-md border border-orange-200/50 px-6 py-2 rounded-full mb-6 opacity-0 -translate-y-4 transition-all duration-700 shadow-sm"
+            :class="{ 'opacity-100 translate-y-0': hotSaleVisible }"
+          >
+            <span class="text-xl animate-pulse">🔥</span>
+            <span class="font-bold tracking-wide uppercase text-sm text-orange-800">Hot Deals</span>
+          </div>
+          
+          <h2 
+            class="text-4xl md:text-5xl font-bold mb-4 opacity-0 -translate-y-4 transition-all duration-700 delay-100 text-gray-900"
+            :class="{ 'opacity-100 translate-y-0': hotSaleVisible }"
+          >
+            ประกาศ<span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-red-500">ยอดนิยม</span>
+          </h2>
+          <p 
+            class="text-gray-600 text-lg max-w-xl mx-auto opacity-0 -translate-y-4 transition-all duration-700 delay-200 leading-relaxed"
+            :class="{ 'opacity-100 translate-y-0': hotSaleVisible }"
+          >
+            ทรัพย์สินคุณภาพ ราคาดี ที่เราคัดสรรมาเพื่อคุณโดยเฉพาะ
+          </p>
+        </div>
+
+        <!-- Hot Sale Cards Grid -->
+        <div class="relative">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <NuxtLink 
+              v-for="(listing, index) in paginatedHotSaleListings" 
+              :key="listing.id" 
+              :to="`/listings/${listing.id}`"
+              class="group block bg-white rounded-3xl overflow-hidden shadow-lg 
+              hover:shadow-xl transition-all duration-500 hover:-translate-y-2 
+              opacity-0 translate-y-8 relative border border-gray-100"
+              :class="{ 'opacity-100 translate-y-0': hotSaleVisible }"
+            >
+              <!-- Fire Badge -->
+              <div class="absolute top-3 left-3 z-20 flex items-center gap-1 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg shadow-orange-500/30 animate-pulse">
+                <span class="text-sm">🔥</span>
+                <span>HOT</span>
+              </div>
+              
+              <!-- Hover Overlay with Soft Glow -->
+              <div class="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-orange-200/60 group-hover:shadow-[0_0_20px_rgba(251,146,60,0.3)] transition-all duration-500 z-10 pointer-events-none"></div>
+              
+              <div class="relative h-52 overflow-hidden">
+                <img 
+                  :src="getListingImage(listing)" 
+                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-4">
+                  <p class="text-2xl font-bold text-white drop-shadow-lg">฿{{ Number(listing.price).toLocaleString() }}</p>
+                </div>
+              </div>
+              
+              <div class="p-5">
+                <span class="inline-block bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full mb-3">
+                  {{ listing.type }}
+                </span>
+                <h3 class="font-bold text-lg text-gray-900 mb-2 truncate group-hover:text-orange-600 transition-colors">
+                  {{ listing.title }}
+                </h3>
+                <p class="text-sm text-gray-500 flex items-center gap-1 mb-2">
+                  <i class="fas fa-map-marker-alt text-orange-500"></i>
+                  {{ listing.province || listing.location }}
+                </p>
+                <p class="text-xs text-gray-400 flex items-center gap-1">
+                  <i class="fas fa-calendar-alt"></i>
+                  {{ formatDate(listing.created_at) }}
+                </p>
+              </div>
+            </NuxtLink>
+          </div>
+
+          <!-- Pagination Controls for Hot Sale -->
+          <div v-if="totalHotSalePages > 1" class="flex justify-center items-center gap-4 mt-8 opacity-0 translate-y-4 transition-all duration-700 delay-300" :class="{ 'opacity-100 translate-y-0': hotSaleVisible }">
+            <button 
+              @click="prevHotSalePage" 
+              :disabled="hotSalePage === 1"
+              class="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-600 hover:bg-orange-50 hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="flex gap-2">
+              <span 
+                v-for="p in totalHotSalePages" 
+                :key="p" 
+                class="w-2.5 h-2.5 rounded-full transition-all duration-300"
+                :class="p === hotSalePage ? 'bg-orange-500 scale-125' : 'bg-gray-300'"
+              ></span>
+            </div>
+            <button 
+              @click="nextHotSalePage" 
+              :disabled="hotSalePage === totalHotSalePages"
+              class="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-600 hover:bg-orange-50 hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
      <!-- Featured Properties -->
     <section class="py-20 bg-gray-50 relative">
       <div class="max-w-7xl mx-auto px-4" v-intersection-observer="onListingsVisible">
@@ -179,9 +306,13 @@
               <h3 class="font-bold text-lg text-gray-900 mb-2 truncate group-hover:text-green-600 transition-colors">
                 {{ listing.title }}
               </h3>
-              <p class="text-sm text-gray-500 flex items-center gap-1">
+              <p class="text-sm text-gray-500 flex items-center gap-1 mb-2">
                 <i class="fas fa-map-marker-alt text-green-600"></i>
                 {{ listing.province || listing.location }}
+              </p>
+              <p class="text-xs text-gray-400 flex items-center gap-1">
+                <i class="fas fa-calendar-alt"></i>
+                {{ formatDate(listing.created_at) }}
               </p>
             </div>
           </NuxtLink>
@@ -499,7 +630,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '~/stores/auth';
@@ -537,7 +668,29 @@ const areasVisible = ref(false);
 const listingsVisible = ref(false);
 const testimonialsVisible = ref(false);
 const featuresVisible = ref(false);
-const adsVisible = ref(false); // Added adsVisible state
+const adsVisible = ref(false);
+const hotSaleVisible = ref(false); // Hot Sale section
+const pinnedListings = ref([]); // Pinned listings for Hot Sale
+const hotSalePage = ref(1);
+const hotSaleItemsPerPage = 4;
+
+const paginatedHotSaleListings = computed(() => {
+  const start = (hotSalePage.value - 1) * hotSaleItemsPerPage;
+  const end = start + hotSaleItemsPerPage;
+  return pinnedListings.value.slice(start, end);
+});
+
+const totalHotSalePages = computed(() => {
+  return Math.ceil(pinnedListings.value.length / hotSaleItemsPerPage);
+});
+
+const nextHotSalePage = () => {
+  if (hotSalePage.value < totalHotSalePages.value) hotSalePage.value++;
+};
+
+const prevHotSalePage = () => {
+  if (hotSalePage.value > 1) hotSalePage.value--;
+};
 
 const searchProvince = ref('');
 const searchType = ref('');
@@ -724,6 +877,22 @@ const onAdsVisible = ([{ isIntersecting }]) => {
   if (isIntersecting) adsVisible.value = true;
 };
 
+// Hot Sale section visibility
+const onHotSaleVisible = ([{ isIntersecting }]) => {
+  if (isIntersecting) hotSaleVisible.value = true;
+};
+
+// Format date to Thai locale
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('th-TH', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  });
+};
+
 // Parallax scroll handler
 const handleScroll = () => {
   if (typeof window === 'undefined') return;
@@ -775,7 +944,7 @@ onMounted(async () => {
     // Fetch listings
     try {
       const listingsRes = await axios.get('http://localhost:5000/api/listings');
-      listings.value = listingsRes.data;
+      listings.value = listingsRes.data.listings || [];
     } catch (e) {
       console.error('Error fetching listings:', e);
     }
@@ -793,6 +962,14 @@ onMounted(async () => {
       };
     } catch (e) {
       console.error('Error fetching ads:', e);
+    }
+
+    // Fetch pinned listings for Hot Sale section
+    try {
+      const pinnedRes = await axios.get('http://localhost:5000/api/listings/pinned');
+      pinnedListings.value = pinnedRes.data;
+    } catch (e) {
+      console.error('Error fetching pinned listings:', e);
     }
   } catch (error) {
     console.error('Error fetching listings:', error);
@@ -938,4 +1115,76 @@ onUnmounted(() => {
     background-attachment: scroll;
   }
 }
+
+/* 🔥 Hot Sale Section Animations */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes fire-particle {
+  0% { 
+    transform: translateY(0) scale(1); 
+    opacity: 0.8; 
+  }
+  50% { 
+    transform: translateY(-150px) scale(0.8) translateX(20px); 
+    opacity: 0.4; 
+  }
+  100% { 
+    transform: translateY(-300px) scale(0.3) translateX(-10px); 
+    opacity: 0; 
+  }
+}
+
+@keyframes fire-particle-2 {
+  0% { 
+    transform: translateY(0) scale(1); 
+    opacity: 0.7; 
+  }
+  50% { 
+    transform: translateY(-180px) scale(0.7) translateX(-30px); 
+    opacity: 0.3; 
+  }
+  100% { 
+    transform: translateY(-350px) scale(0.2) translateX(20px); 
+    opacity: 0; 
+  }
+}
+
+@keyframes fire-particle-3 {
+  0% { 
+    transform: translateY(0) scale(1); 
+    opacity: 0.6; 
+  }
+  50% { 
+    transform: translateY(-120px) scale(0.9) translateX(15px); 
+    opacity: 0.5; 
+  }
+  100% { 
+    transform: translateY(-250px) scale(0.4) translateX(-25px); 
+    opacity: 0; 
+  }
+}
+
+.animate-fire-particle {
+  animation: fire-particle 3s ease-out infinite;
+}
+
+.animate-fire-particle-2 {
+  animation: fire-particle-2 4s ease-out infinite;
+  animation-delay: 0.5s;
+}
+
+.animate-fire-particle-3 {
+  animation: fire-particle-3 3.5s ease-out infinite;
+  animation-delay: 1s;
+}
 </style>
+

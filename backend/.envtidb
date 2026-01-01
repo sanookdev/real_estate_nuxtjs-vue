@@ -1,0 +1,12 @@
+PORT=5000
+DB_HOST=gateway01.ap-southeast-1.prod.aws.tidbcloud.com
+DB_USER=6TFcRfqWguGKpxH.root
+DB_PASSWORD=sMm8w8I7LxEEkBMT
+DB_PORT=4000
+DB_NAME=test
+JWT_SECRET=supersecretkey123
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=supaporn.dev@gmail.com
+SMTP_PASS=bnvp gbos zxre oimt
+

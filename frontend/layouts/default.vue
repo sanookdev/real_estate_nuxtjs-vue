@@ -194,8 +194,8 @@ const userItems = computed(() => [
   }],
   ...( ['admin', 'superadmin'].includes(authStore.user?.role) ? [
     [{
-      label: authStore.user?.role === 'superadmin' ? 'จัดการผู้ใช้และระบบ' : 'จัดการประกาศ',
-      icon: authStore.user?.role === 'superadmin' ? 'i-heroicons-users' : 'i-heroicons-clipboard-document-list',
+      label: authStore.user?.role === 'superadmin' ? 'จัดการข้อมูล' : 'จัดการประกาศ',
+      icon: authStore.user?.role === 'superadmin' ? 'i-heroicons-clipboard-document-list' : 'i-heroicons-clipboard-document-list',
       to: '/admin'
     }]
   ] : []),

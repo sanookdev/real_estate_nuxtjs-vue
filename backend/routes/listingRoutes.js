@@ -7,6 +7,7 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 
 // Public
 router.get('/', listingController.getAllListings);
+router.get('/pinned', listingController.getPinnedListings); // Hot Sale pinned listings
 // Admin route must come before /:id to prevent conflict
 router.get('/admin/all', authMiddleware, roleMiddleware(['admin', 'superadmin']), listingController.getAdminListings);
 router.get('/:id', listingController.getListingById);
@@ -17,6 +18,8 @@ router.get('/user/my-listings', authMiddleware, listingController.getMyListings)
 router.delete('/:id', authMiddleware, listingController.deleteListing);
 router.patch('/:id/status', authMiddleware, roleMiddleware(['admin', 'superadmin']), listingController.updateStatus);
 router.patch('/:id/my-status', authMiddleware, listingController.updateMyListingStatus);
+router.patch('/:id/pin', authMiddleware, roleMiddleware(['admin', 'superadmin']), listingController.togglePinListing); // Toggle pin
 router.put('/:id', authMiddleware, upload.array('images', 5), listingController.updateListing);
 
 module.exports = router;
+

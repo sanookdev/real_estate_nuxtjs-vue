@@ -84,19 +84,44 @@ exports.createListing = async (req, res) => {
 
 exports.getAllListings = async (req, res) => {
     try {
-        const filters = {
-            type: req.query.type,
-            status: 'active'
-        };
-        const listings = await ListingModel.findAll(filters);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const status = 'active';
+        const search = req.query.search;
+        const publisher = req.query.publisher;
+        const minPrice = req.query.minPrice;
+        const maxPrice = req.query.maxPrice;
+        const dateFrom = req.query.dateFrom;
+        const dateTo = req.query.dateTo;
+        const isPinned = req.query.isPinned;
 
-        // Parse images JSON (actually mysql2 might return string)
+        const filters = { status };
+        if (search) filters.search = search;
+        if (publisher) filters.publisher = publisher;
+        if (minPrice) filters.minPrice = minPrice;
+        if (maxPrice) filters.maxPrice = maxPrice;
+        if (dateFrom) filters.dateFrom = dateFrom;
+        if (dateTo) filters.dateTo = dateTo;
+        if (isPinned) filters.isPinned = isPinned === 'true';
+
+        const listings = await ListingModel.findWithPagination(filters, page, limit);
+        const total = await ListingModel.countWithPagination(filters);
+        const totalPages = Math.ceil(total / limit);
+
         const formattedListings = listings.map(l => ({
             ...l,
             images: typeof l.images === 'string' ? JSON.parse(l.images) : l.images
         }));
 
-        res.json(formattedListings);
+        res.json({
+            listings: formattedListings,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages
+            }
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -261,12 +286,20 @@ exports.updateListing = async (req, res) => {
         const {
             title, description, price, location, type,
             property_condition, facilities, nearby_places, google_map_link,
-            province, district, subdistrict, postal_code
+            province, district, subdistrict, postal_code, existingImages
         } = req.body;
 
-        // Handle new images if uploaded
-        let images = listing.images;
-        if (typeof images === 'string') images = JSON.parse(images);
+        // Handle images - use existingImages from frontend if provided (allows deletion)
+        let images = [];
+        if (existingImages !== undefined && existingImages !== null) {
+            // Parse existing images that user wants to keep (after deletion)
+            // This includes empty arrays for deleting all images
+            images = typeof existingImages === 'string' ? JSON.parse(existingImages) : existingImages;
+        } else {
+            // Fallback to all original images only if existingImages not sent at all
+            images = listing.images;
+            if (typeof images === 'string') images = JSON.parse(images);
+        }
 
         if (req.files && req.files.length > 0) {
             const tempImages = req.files.map(file => file.filename);
@@ -312,6 +345,43 @@ exports.updateListing = async (req, res) => {
         await ListingModel.update(req.params.id, updateData);
         res.json({ message: 'Listing updated successfully', listing: updateData });
 
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
+// Get pinned listings for Hot Sale section
+exports.getPinnedListings = async (req, res) => {
+    try {
+        const listings = await ListingModel.findPinned();
+        const formattedListings = listings.map(l => ({
+            ...l,
+            images: typeof l.images === 'string' ? JSON.parse(l.images) : l.images
+        }));
+        res.json(formattedListings);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+
+// Toggle pin status (Admin only)
+exports.togglePinListing = async (req, res) => {
+    try {
+        if (req.user.role !== 'admin' && req.user.role !== 'superadmin') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const newPinStatus = await ListingModel.togglePin(req.params.id);
+        if (newPinStatus === null) {
+            return res.status(404).json({ message: 'Listing not found' });
+        }
+
+        res.json({
+            message: newPinStatus ? 'ปักหมุดประกาศสำเร็จ' : 'ยกเลิกการปักหมุดสำเร็จ',
+            is_pinned: newPinStatus
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

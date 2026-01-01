@@ -152,6 +152,15 @@
 
             <template #actions-data="{ row }">
               <div class="flex gap-2">
+                <UTooltip :text="row.is_pinned ? 'ยกเลิกปักหมุด' : 'ปักหมุด (Hot Sale)'">
+                  <UButton 
+                    :icon="row.is_pinned ? 'i-heroicons-fire' : 'i-heroicons-fire'" 
+                    size="xs" 
+                    :color="row.is_pinned ? 'orange' : 'gray'" 
+                    :variant="row.is_pinned ? 'solid' : 'ghost'" 
+                    @click="togglePin(row.id)" 
+                  />
+                </UTooltip>
                 <UButton icon="i-heroicons-pencil-square" size="xs" color="blue" variant="ghost" :to="`/listings/edit/${row.id}`" />
                 <UButton icon="i-heroicons-trash" size="xs" color="red" variant="ghost" @click="deleteListing(row.id)" />
               </div>
@@ -515,6 +524,30 @@ const deleteListing = (id) => {
     },
     function() {}
   );
+};
+
+const togglePin = async (id) => {
+  try {
+    const response = await axios.patch(`http://localhost:5000/api/listings/${id}/pin`, {}, {
+      headers: { Authorization: `Bearer ${authStore.token}` }
+    });
+    
+    // Update local state
+    const index = listings.value.findIndex(l => l.id === id);
+    if (index !== -1) {
+      listings.value[index].is_pinned = response.data.is_pinned;
+    }
+    
+    const { $alertify } = useNuxtApp();
+    if (response.data.is_pinned) {
+      $alertify.success('ปักหมุดประกาศเรียบร้อย');
+    } else {
+      $alertify.success('ยกเลิกการปักหมุดเรียบร้อย');
+    }
+  } catch (error) {
+    const { $alertify } = useNuxtApp();
+    $alertify.error('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message));
+  }
 };
 
 // --- Users Logic ---
