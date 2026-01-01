@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
     res.json({ message: 'Welcome to Real Estate Asset Sale API' });
 });
 
-app.get('/health', (req, res) => {
+app.get('/healthz', (req, res) => {
     res.status(200).json({ message: 'Server is running' });
 });
 
