@@ -82,23 +82,23 @@
           <div class="mt-8 flex gap-4 justify-center lg:justify-start">
              <UButton 
                v-if="settingsStore.settings.contact_facebook" 
-               color="blue" 
-               variant="soft" 
-               icon="i-fab-facebook" 
+               class="bg-[#1877F2] hover:bg-[#166fe5] text-white border-none shadow-lg shadow-blue-500/30 transition-all duration-300 hover:-translate-y-1"
+               size="lg"
+               icon="i-simple-icons-facebook" 
                :to="settingsStore.settings.contact_facebook" 
                target="_blank"
              >
-               Facebook
+               Facebook Page
              </UButton>
              <UButton 
                v-if="settingsStore.settings.contact_line" 
-               color="green" 
-               variant="soft" 
-               icon="i-fab-line" 
+               class="bg-[#06C755] hover:bg-[#05b34c] text-white border-none shadow-lg shadow-green-500/30 transition-all duration-300 hover:-translate-y-1"
+               size="lg"
+               icon="i-simple-icons-line" 
                :to="`https://line.me/ti/p/~${settingsStore.settings.contact_line.replace('@','')}`" 
                target="_blank"
              >
-               Line
+               Add Line Friend
              </UButton>
           </div>
         </div>
@@ -152,7 +152,6 @@
         </UCard>
       </div>
     </div>
-
     <!-- Map Section -->
     <div class="h-96 w-full bg-gray-200 mt-12">
       <iframe 

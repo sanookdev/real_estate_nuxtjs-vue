@@ -13,7 +13,7 @@ router.get('/public', settingsController.getPublicSettings);
 
 router.get('/', authMiddleware, roleMiddleware(['superadmin']), settingsController.getSettings);
 
-router.put('/', authMiddleware, roleMiddleware(['superadmin']), upload.single('site_logo'), settingsController.updateSettings);
+router.put('/', authMiddleware, roleMiddleware(['superadmin']), upload.fields([{ name: 'site_logo', maxCount: 1 }, { name: 'site_favicon', maxCount: 1 }]), settingsController.updateSettings);
 
 // Test email endpoint
 router.post('/test-email', authMiddleware, roleMiddleware(['superadmin']), async (req, res) => {

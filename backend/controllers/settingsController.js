@@ -17,6 +17,7 @@ exports.getPublicSettings = async (req, res) => {
             site_name: allSettings.site_name,
             site_description: allSettings.site_description,
             site_logo: allSettings.site_logo,
+            site_favicon: allSettings.site_favicon,
             content_about_us: allSettings.content_about_us,
             contact_line: allSettings.contact_line,
             contact_facebook: allSettings.contact_facebook,
@@ -36,16 +37,24 @@ exports.updateSettings = async (req, res) => {
         const settings = req.body; // Expect object { key: value, ... }
 
         // Handle Logo Upload
-        // Handle Logo Upload
-        if (req.file) {
-            // Move file from temp to uploads root
+        // Handle File Uploads (Logo & Favicon)
+        if (req.files) {
             const fs = require('fs');
             const path = require('path');
-            const oldPath = req.file.path;
-            const newPath = path.join('uploads', req.file.filename);
 
-            fs.renameSync(oldPath, newPath);
-            settings.site_logo = req.file.filename;
+            // Helper to move file
+            const saveFile = (fileField) => {
+                if (req.files[fileField] && req.files[fileField][0]) {
+                    const file = req.files[fileField][0];
+                    const oldPath = file.path;
+                    const newPath = path.join('uploads', file.filename);
+                    fs.renameSync(oldPath, newPath);
+                    settings[fileField] = file.filename;
+                }
+            };
+
+            saveFile('site_logo');
+            saveFile('site_favicon');
         }
 
         for (const [key, value] of Object.entries(settings)) {

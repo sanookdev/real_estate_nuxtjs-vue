@@ -32,20 +32,28 @@
                 <div v-if="settings.site_logo" class="shrink-0">
                   <img :src="`http://localhost:5000/uploads/${settings.site_logo}`" alt="Current Logo" class="h-12 w-12 object-contain rounded border border-gray-200 p-1">
                 </div>
-                <input type="file" @change="onFileChange" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+                <input type="file" @change="onLogoChange" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
               </div>
               <p class="text-xs text-gray-500 mt-1">อัปโหลดไฟล์ภาพเพื่อเปลี่ยนโลโก้</p>
+            </UFormGroup>
+            
+             <!-- Site Favicon Upload -->
+            <UFormGroup label="ไอคอนเว็บไซต์ (Favicon)" name="site_favicon_upload">
+              <div class="flex items-center gap-4">
+                <div v-if="settings.site_favicon" class="shrink-0">
+                  <img :src="`http://localhost:5000/uploads/${settings.site_favicon}`" alt="Current Favicon" class="h-8 w-8 object-contain rounded border border-gray-200 p-1">
+                </div>
+                <input type="file" @change="onFaviconChange" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
+              </div>
+              <p class="text-xs text-gray-500 mt-1">อัปโหลดไฟล์ภาพไอคอน (.ico, .png) เพื่อเปลี่ยน Favicon</p>
             </UFormGroup>
             
             <UFormGroup label="คำอธิบายเว็บไซต์ (SEO Description)" name="site_description">
               <UTextarea v-model="settings.site_description" placeholder="เว็บขายบ้านและคอนโดที่ดีที่สุด..." />
             </UFormGroup>
-            
-            <UFormGroup label="โลโก้ URL" name="site_logo">
-              <UInput v-model="settings.site_logo" placeholder="https://example.com/logo.png" icon="i-heroicons-photo" />
-            </UFormGroup>
           </div>
         </UCard>
+
 
         <!-- Content Settings -->
         <UCard>
@@ -194,16 +202,17 @@ const loading = ref(false); // For initial fetch
 const saving = ref(false); // For saving settings
 const testLoading = ref(false); // For sending test email (renamed from sending to match template)
 const logoFile = ref(null);
+const faviconFile = ref(null);
 
 const settings = reactive({
     site_name: '',
     site_description: '',
     site_logo: '',
+    site_favicon: '',
     auto_approve_users: false,
     smtp_host: '',
     smtp_port: '',
     smtp_user: '',
-    smtp_pass: '',
     smtp_pass: '',
     smtp_from: '',
     content_about_us: '',
@@ -249,8 +258,12 @@ const fetchSettings = async () => {
     }
 };
 
-const onFileChange = (event) => {
+const onLogoChange = (event) => {
     logoFile.value = event.target.files[0];
+};
+
+const onFaviconChange = (event) => {
+    faviconFile.value = event.target.files[0];
 };
 
 const saveSettings = async () => {
@@ -270,7 +283,12 @@ const saveSettings = async () => {
         
         // Append Logo if selected
         if (logoFile.value) {
-            formData.append('site_logo', logoFile.value); // Use 'site_logo' to match backend middleware
+            formData.append('site_logo', logoFile.value);
+        }
+
+        // Append Favicon if selected
+        if (faviconFile.value) {
+            formData.append('site_favicon', faviconFile.value);
         }
 
         const response = await axios.put('http://localhost:5000/api/settings', formData, {
@@ -291,6 +309,7 @@ const saveSettings = async () => {
         const { $alertify } = useNuxtApp();
         $alertify.success('บันทึกการตั้งค่าเรียบร้อยแล้ว');
         logoFile.value = null; // Reset file input
+        faviconFile.value = null;
     } catch (error) {
         console.error('Error saving settings', error);
         const { $alertify } = useNuxtApp();
