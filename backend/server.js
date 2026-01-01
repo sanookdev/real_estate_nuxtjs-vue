@@ -7,7 +7,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: '*',
     credentials: true
 }));
 app.use(express.json());
@@ -18,6 +18,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get('/', (req, res) => {
     res.json({ message: 'Welcome to Real Estate Asset Sale API' });
 });
+
+app.get('/health', (req, res) => {
+    res.status(200).json({ message: 'Server is running' });
+});
+
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
