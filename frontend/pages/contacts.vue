@@ -106,12 +106,18 @@
         <!-- Contact Form -->
         <UCard>
           <template #header>
-            <h3 class="text-xl font-bold text-gray-900">ส่งข้อความถึงเรา</h3>
+            <div class="flex items-center justify-between">
+              <h3 class="text-xl font-bold text-gray-900">ส่งข้อความถึงเรา</h3>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <UIcon name="i-heroicons-shield-check" class="text-green-500" />
+                <span>Protected by reCAPTCHA</span>
+              </div>
+            </div>
           </template>
 
           <form @submit.prevent="handleSubmit" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <UFormGroup label="ชื่อ" name="name">
+              <UFormGroup label="ชื่อ" name="name" required>
                 <UInput v-model="form.name" placeholder="ชื่อจริง" icon="i-heroicons-user" />
               </UFormGroup>
               <UFormGroup label="นามสกุล" name="surname">
@@ -119,7 +125,7 @@
               </UFormGroup>
             </div>
 
-            <UFormGroup label="อีเมล" name="email">
+            <UFormGroup label="อีเมล" name="email" required>
               <UInput v-model="form.email" type="email" placeholder="name@example.com" icon="i-heroicons-envelope" />
             </UFormGroup>
 
@@ -131,8 +137,35 @@
               <USelect v-model="form.subject" :options="subjects" placeholder="เลือกหัวข้อ..." />
             </UFormGroup>
 
-            <UFormGroup label="ข้อความ" name="message">
+            <UFormGroup label="ข้อความ" name="message" required>
               <UTextarea v-model="form.message" placeholder="รายละเอียด..." :rows="4" />
+            </UFormGroup>
+
+            <!-- Honeypot Field (Hidden from humans, bots will fill it) -->
+            <div class="absolute -left-[9999px] opacity-0 pointer-events-none" aria-hidden="true">
+              <label for="website">Website</label>
+              <input 
+                type="text" 
+                id="website" 
+                name="website" 
+                v-model="honeypot" 
+                autocomplete="off" 
+                tabindex="-1"
+              />
+            </div>
+
+            <!-- Google reCAPTCHA v2 Checkbox -->
+            <UFormGroup label="ตรวจสอบว่าคุณไม่ใช่หุ่นยนต์" name="recaptcha" required>
+              <div class="flex justify-center">
+                <div 
+                  ref="recaptchaContainer" 
+                  class="g-recaptcha" 
+                  :data-sitekey="recaptchaSiteKey"
+                  data-callback="onRecaptchaVerify"
+                  data-expired-callback="onRecaptchaExpired"
+                ></div>
+              </div>
+              <p v-if="recaptchaError" class="text-red-500 text-xs mt-1 text-center">{{ recaptchaError }}</p>
             </UFormGroup>
 
             <div v-if="success" class="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg text-sm">
@@ -145,7 +178,8 @@
               {{ error }}
             </div>
 
-            <UButton type="submit" block size="lg" color="green" :loading="loading">
+            <UButton type="submit" block size="lg" color="green" :loading="loading" :disabled="!recaptchaToken">
+              <UIcon name="i-heroicons-paper-airplane" class="mr-2" />
               ส่งข้อความ
             </UButton>
           </form>
@@ -168,22 +202,78 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import { useSettingsStore } from '~/stores/settings';
 
 const config = useRuntimeConfig();
 const apiUrl = config.public.apiUrl;
+const recaptchaSiteKey = config.public.recaptchaSiteKey;
 
 const settingsStore = useSettingsStore();
 const mounted = ref(false);
+const recaptchaContainer = ref(null);
+
+// Bot Protection Variables
+const honeypot = ref('');
+const recaptchaToken = ref('');
+const recaptchaError = ref('');
+
+// Define global callbacks for reCAPTCHA
+if (process.client) {
+  window.onRecaptchaVerify = (token) => {
+    recaptchaToken.value = token;
+    recaptchaError.value = '';
+  };
+  
+  window.onRecaptchaExpired = () => {
+    recaptchaToken.value = '';
+    recaptchaError.value = 'รหัส reCAPTCHA หมดอายุ กรุณาลองใหม่';
+  };
+}
+
+// Load reCAPTCHA script
+const loadRecaptchaScript = () => {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector('script[src*="recaptcha"]')) {
+      resolve();
+      return;
+    }
+    
+    const script = document.createElement('script');
+    script.src = 'https://www.google.com/recaptcha/api.js';
+    script.async = true;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+};
 
 onMounted(async () => {
   await settingsStore.fetchSettings();
+  
+  // Load reCAPTCHA
+  if (recaptchaSiteKey) {
+    try {
+      await loadRecaptchaScript();
+    } catch (e) {
+      console.error('Failed to load reCAPTCHA:', e);
+    }
+  }
+  
   // Trigger fade animation
   setTimeout(() => {
     mounted.value = true;
   }, 100);
+});
+
+onUnmounted(() => {
+  // Cleanup global callbacks
+  if (process.client) {
+    delete window.onRecaptchaVerify;
+    delete window.onRecaptchaExpired;
+  }
 });
 
 const loading = ref(false);
@@ -207,18 +297,56 @@ const form = reactive({
   message: ''
 });
 
+const resetRecaptcha = () => {
+  if (process.client && window.grecaptcha) {
+    window.grecaptcha.reset();
+    recaptchaToken.value = '';
+  }
+};
+
 const handleSubmit = async () => {
   loading.value = true;
   success.value = '';
   error.value = '';
   
+  // === BOT PROTECTION CHECKS ===
+  
+  // 1. Honeypot Check
+  if (honeypot.value) {
+    console.warn('Bot detected: Honeypot field filled');
+    success.value = 'ส่งข้อความเรียบร้อยแล้ว!';
+    loading.value = false;
+    return;
+  }
+  
+  // 2. Basic Validation
+  if (!form.name || !form.email || !form.message) {
+    error.value = 'กรุณากรอกข้อมูลที่จำเป็น (ชื่อ, อีเมล, ข้อความ)';
+    loading.value = false;
+    return;
+  }
+  
+  // 3. reCAPTCHA Check
+  if (!recaptchaToken.value) {
+    recaptchaError.value = 'กรุณาคลิกยืนยันว่าคุณไม่ใช่หุ่นยนต์';
+    loading.value = false;
+    return;
+  }
+  
+  // === END BOT PROTECTION ===
+  
   try {
-    await axios.post(`${apiUrl}/api/contact`, form);
+    await axios.post(`${apiUrl}/api/contact`, {
+      ...form,
+      recaptchaToken: recaptchaToken.value
+    });
     success.value = 'ส่งข้อความเรียบร้อยแล้ว! เจ้าหน้าที่จะติดต่อกลับโดยเร็วที่สุด';
     // Clear form
     Object.keys(form).forEach(key => form[key] = '');
+    resetRecaptcha();
   } catch (err) {
     error.value = err.response?.data?.message || 'เกิดข้อผิดพลาดในการส่งข้อความ';
+    resetRecaptcha();
   } finally {
     loading.value = false;
   }
