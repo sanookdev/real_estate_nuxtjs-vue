@@ -9,7 +9,7 @@
             <button @click="handleLogoClick" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <template v-if="settingsStore.siteLogo">
                 <img 
-                  :src="`${apiUrl}/uploads/${settingsStore.siteLogo}`" 
+                  :src="getLogoUrl()" 
                   alt="Logo" 
                   class="h-10 w-auto object-contain rounded-md bg-white/10 backdrop-blur-sm p-0.5"
                 />
@@ -35,14 +35,23 @@
             </NuxtLink>
           </div>
 
-          <!-- Right: Auth Buttons -->
+          <!-- Right: Auth Buttons & Mobile Menu -->
           <div class="flex items-center gap-4 z-10">
+            <!-- Mobile Menu Button -->
+            <button 
+              @click="mobileMenuOpen = !mobileMenuOpen" 
+              class="md:hidden p-2 rounded-lg transition-colors"
+              :class="isTransparent ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'"
+            >
+              <UIcon :name="mobileMenuOpen ? 'i-heroicons-x-mark' : 'i-heroicons-bars-3'" class="w-6 h-6" />
+            </button>
+            
             <ClientOnly>
               <template v-if="authStore.user">
                 <UDropdown :items="userItems" :popper="{ placement: 'bottom-end' }">
                   <UButton color="white" variant="ghost" class="flex items-center bg-transparent hover:bg-transparent gap-2">
                     <UAvatar :alt="authStore.user.username" size="sm" />
-                    <span :class="isTransparent ? 'text-white ' : 'text-gray-700'">{{ authStore.user.username }}</span>
+                    <span class="hidden sm:inline" :class="isTransparent ? 'text-white ' : 'text-gray-700'">{{ authStore.user.username }}</span>
                     <UIcon name="i-heroicons-chevron-down-20-solid" class="w-4 h-4" :class="isTransparent ? 'text-white' : 'text-gray-500'" />
                   </UButton>
 
@@ -62,7 +71,7 @@
                 </UDropdown>
               </template>
               <template v-else>
-                <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-3">
                   <NuxtLink 
                     to="/login" 
                     class="text-sm font-medium transition-colors"
@@ -86,6 +95,116 @@
         </div>
       </div>
     </header>
+    
+    <!-- Mobile Menu Overlay (Outside header for proper z-index) -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-opacity duration-300"
+        leave-active-class="transition-opacity duration-300"
+        enter-from-class="opacity-0"
+        leave-to-class="opacity-0"
+      >
+        <div 
+          v-if="mobileMenuOpen" 
+          class="fixed inset-0 bg-black/50 z-[9998] md:hidden"
+          @click="mobileMenuOpen = false"
+        ></div>
+      </Transition>
+      
+      <!-- Mobile Menu Panel -->
+      <Transition
+        enter-active-class="transition-transform duration-300"
+        leave-active-class="transition-transform duration-300"
+        enter-from-class="translate-x-full"
+        leave-to-class="translate-x-full"
+      >
+        <div 
+          v-if="mobileMenuOpen" 
+          class="fixed top-0 right-0 bottom-0 w-72 bg-white shadow-2xl z-[9999] md:hidden overflow-y-auto"
+        >
+          <!-- Mobile Menu Header -->
+          <div class="flex items-center justify-between p-4 border-b">
+            <span class="text-lg font-bold text-green-700">เมนู</span>
+            <button @click="mobileMenuOpen = false" class="p-2 text-gray-500 hover:text-gray-700">
+              <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
+            </button>
+          </div>
+          
+          <!-- Mobile Nav Links -->
+          <nav class="p-4">
+            <NuxtLink 
+              v-for="link in navLinks" 
+              :key="link.to" 
+              :to="link.to"
+              @click="mobileMenuOpen = false"
+              class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg transition-colors"
+            >
+              <UIcon :name="link.icon" class="w-5 h-5" />
+              <span class="font-medium">{{ link.label }}</span>
+            </NuxtLink>
+          </nav>
+          
+          <!-- Mobile Auth Section -->
+          <div class="p-4 border-t">
+            <ClientOnly>
+              <template v-if="authStore.user">
+                <div class="flex items-center gap-3 px-4 py-3 mb-3 bg-gray-50 rounded-lg">
+                  <UAvatar :alt="authStore.user.username" size="sm" />
+                  <div>
+                    <p class="font-medium text-gray-900">{{ authStore.user.username }}</p>
+                    <p class="text-xs text-gray-500">{{ authStore.user.email }}</p>
+                  </div>
+                </div>
+                <NuxtLink 
+                  to="/dashboard" 
+                  @click="mobileMenuOpen = false"
+                  class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  <UIcon name="i-heroicons-home" class="w-5 h-5" />
+                  <span>แดชบอร์ด</span>
+                </NuxtLink>
+                <NuxtLink 
+                  v-if="authStore.user.role === 'admin' || authStore.user.role === 'superadmin'"
+                  to="/admin" 
+                  @click="mobileMenuOpen = false"
+                  class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  <UIcon name="i-heroicons-cog-6-tooth" class="w-5 h-5" />
+                  <span>จัดการระบบ</span>
+                </NuxtLink>
+                <button 
+                  @click="logout(); mobileMenuOpen = false"
+                  class="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full"
+                >
+                  <UIcon name="i-heroicons-arrow-left-on-rectangle" class="w-5 h-5" />
+                  <span>ออกจากระบบ</span>
+                </button>
+              </template>
+              <template v-else>
+                <div class="space-y-3">
+                  <NuxtLink 
+                    to="/login" 
+                    @click="mobileMenuOpen = false"
+                    class="flex items-center justify-center gap-2 w-full px-4 py-3 border border-green-600 text-green-600 rounded-lg font-medium hover:bg-green-50 transition-colors"
+                  >
+                    <UIcon name="i-heroicons-arrow-right-on-rectangle" class="w-5 h-5" />
+                    เข้าสู่ระบบ
+                  </NuxtLink>
+                  <NuxtLink 
+                    to="/register" 
+                    @click="mobileMenuOpen = false"
+                    class="flex items-center justify-center gap-2 w-full px-4 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+                  >
+                    <UIcon name="i-heroicons-user-plus" class="w-5 h-5" />
+                    สมัครสมาชิก
+                  </NuxtLink>
+                </div>
+              </template>
+            </ClientOnly>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Main Content -->
     <main class="flex-1">
@@ -152,10 +271,21 @@ const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
 const config = useRuntimeConfig();
 const apiUrl = config.public.apiUrl;
+const isDemoMode = config.public.demoMode === 'true' || config.public.demoMode === true;
 const route = useRoute();
 const router = useRouter();
 const isScrolled = ref(false);
 const showScrollTop = ref(false);
+const mobileMenuOpen = ref(false);
+
+// Get logo URL helper (handles demo mode)
+const getLogoUrl = () => {
+  const logo = settingsStore.siteLogo;
+  if (isDemoMode && logo && logo.startsWith('demo/')) {
+    return `/${logo}`;
+  }
+  return `${apiUrl}/uploads/${logo}`;
+};
 
 const isHomePage = computed(() => route.path === '/');
 const isTransparent = computed(() => isHomePage.value && !isScrolled.value);
@@ -168,10 +298,10 @@ const navbarClass = computed(() => {
 });
 
 const navLinks = [
-  { label: 'หน้าแรก', to: '/' },
-  { label: 'ประกาศทั้งหมด', to: '/listings' },
-  { label: 'เกี่ยวกับเรา', to: '/about' },
-  { label: 'ติดต่อ', to: '/contacts' }
+  { label: 'หน้าแรก', to: '/', icon: 'i-heroicons-home' },
+  { label: 'ประกาศทั้งหมด', to: '/listings', icon: 'i-heroicons-building-office-2' },
+  { label: 'เกี่ยวกับเรา', to: '/about', icon: 'i-heroicons-information-circle' },
+  { label: 'ติดต่อ', to: '/contacts', icon: 'i-heroicons-phone' }
 ];
 
 const logout = () => {
