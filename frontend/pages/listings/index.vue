@@ -185,10 +185,9 @@
               :to="`/listings/${listing.id}`"
               class="group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
             >
-              <!-- Image -->
               <div class="relative h-52 overflow-hidden">
                 <img 
-                  :src="listing.images && listing.images.length ? `${apiUrl}/uploads/${listing.images[0]}` : 'https://placehold.co/600x400/166534/ffffff?text=Property'" 
+                  :src="getListingImage(listing)" 
                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <!-- Badges -->
@@ -296,9 +295,11 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { getProvinces } from '~/utils/thailandAddresses';
 import { useAuthStore } from '~/stores/auth';
+import { mockListings } from '~/data/mockListings';
 
 const config = useRuntimeConfig();
 const apiUrl = config.public.apiUrl;
+const isDemoMode = config.public.demoMode === 'true' || config.public.demoMode === true;
 
 
 const router = useRouter(); // Was already imported but ensure correct
@@ -320,6 +321,19 @@ const formatDate = (dateString) => {
     month: 'short', 
     year: 'numeric' 
   });
+};
+
+// Get listing image URL (handles demo mode)
+const getListingImage = (listing) => {
+  if (listing.images && listing.images.length > 0) {
+    const img = listing.images[0];
+    // If demo mode image path starts with 'demo/', use public folder
+    if (isDemoMode && img.startsWith('demo/')) {
+      return `/${img}`;
+    }
+    return `${apiUrl}/uploads/${img}`;
+  }
+  return 'https://placehold.co/600x400/166534/ffffff?text=Property';
 };
 
 const filters = reactive({
@@ -478,6 +492,17 @@ onMounted(async () => {
   if (route.query.search) filters.search = route.query.search;
   if (route.query.isPinned) filters.isPinned = route.query.isPinned === 'true';
 
+  // Demo mode: use mock data
+  if (isDemoMode) {
+    listings.value = mockListings;
+    loading.value = false;
+    setTimeout(() => {
+      mounted.value = true;
+    }, 100);
+    return;
+  }
+
+  // Production mode: fetch from API
   try {
     const response = await axios.get(`${apiUrl}/api/listings`);
     listings.value = response.data.listings || [];

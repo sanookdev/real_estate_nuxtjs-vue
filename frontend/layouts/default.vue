@@ -9,7 +9,7 @@
             <button @click="handleLogoClick" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <template v-if="settingsStore.siteLogo">
                 <img 
-                  :src="`${apiUrl}/uploads/${settingsStore.siteLogo}`" 
+                  :src="getLogoUrl()" 
                   alt="Logo" 
                   class="h-10 w-auto object-contain rounded-md bg-white/10 backdrop-blur-sm p-0.5"
                 />
@@ -152,10 +152,20 @@ const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
 const config = useRuntimeConfig();
 const apiUrl = config.public.apiUrl;
+const isDemoMode = config.public.demoMode === 'true' || config.public.demoMode === true;
 const route = useRoute();
 const router = useRouter();
 const isScrolled = ref(false);
 const showScrollTop = ref(false);
+
+// Get logo URL helper (handles demo mode)
+const getLogoUrl = () => {
+  const logo = settingsStore.siteLogo;
+  if (isDemoMode && logo && logo.startsWith('demo/')) {
+    return `/${logo}`;
+  }
+  return `${apiUrl}/uploads/${logo}`;
+};
 
 const isHomePage = computed(() => route.path === '/');
 const isTransparent = computed(() => isHomePage.value && !isScrolled.value);

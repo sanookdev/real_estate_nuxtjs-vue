@@ -28,7 +28,7 @@
               <span>HOT</span>
             </div>
             <img 
-              :src="currentImage ? `${apiUrl}/uploads/${currentImage}` : 'https://placehold.co/800x600/166534/ffffff?text=Property'" 
+              :src="getImageUrl(currentImage)" 
               class="w-full h-[450px] object-cover"
               :class="{ 'pt-12': listing.status === 'sold' }"
             />
@@ -42,7 +42,7 @@
               class="w-24 h-16 rounded-lg overflow-hidden cursor-pointer border-2 shrink-0 transition-all"
               :class="currentImage === img ? 'border-green-500' : 'border-transparent hover:border-gray-300'"
             >
-              <img :src="`${apiUrl}/uploads/${img}`" class="w-full h-full object-cover" />
+              <img :src="getImageUrl(img)" class="w-full h-full object-cover" />
             </div>
           </div>
 
@@ -172,7 +172,7 @@
           >
             <div class="relative h-48 overflow-hidden">
               <img 
-                :src="related.images && related.images.length ? `${apiUrl}/uploads/${related.images[0]}` : 'https://placehold.co/400x300/166534/ffffff?text=Property'" 
+                :src="getImageUrl(related.images && related.images.length ? related.images[0] : null)" 
                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <span class="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
@@ -217,9 +217,11 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useAuthStore } from '~/stores/auth';
+import { mockListings, getListingById } from '~/data/mockListings';
 
 const config = useRuntimeConfig();
 const apiUrl = config.public.apiUrl;
+const isDemoMode = config.public.demoMode === 'true' || config.public.demoMode === true;
 
 
 const route = useRoute();
@@ -266,7 +268,34 @@ const formatDate = (dateString) => {
     });
 };
 
+// Get image URL helper (handles demo mode)
+const getImageUrl = (img) => {
+    if (!img) return 'https://placehold.co/800x600/166534/ffffff?text=Property';
+    if (isDemoMode && img.startsWith('demo/')) {
+        return `/${img}`;
+    }
+    return `${apiUrl}/uploads/${img}`;
+};
+
 onMounted(async () => {
+    // Demo mode: use mock data
+    if (isDemoMode) {
+        const mockListing = getListingById(route.params.id);
+        if (mockListing) {
+            listing.value = mockListing;
+            if (mockListing.images && mockListing.images.length > 0) {
+                currentImage.value = mockListing.images[0];
+            }
+            // Get related listings of same type
+            relatedListings.value = mockListings
+                .filter(item => item.type === mockListing.type && item.id !== mockListing.id)
+                .slice(0, 4);
+        }
+        loading.value = false;
+        return;
+    }
+    
+    // Production mode: use API
     try {
         const response = await axios.get(`${apiUrl}/api/listings/${route.params.id}`);
         listing.value = response.data;

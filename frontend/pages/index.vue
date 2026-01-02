@@ -28,7 +28,7 @@
         <h1 class="text-5xl md:text-7xl font-bold mb-6 animate-on-load">
           <span class="block text-white">ที่ดิน และอสังหาริมทรัพย์</span>
           <span class="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-200 mt-2">
-            ทะเลทอง ราคาสวย ไปกันต่อ
+            ทำเลทอง ราคาสวย ไปกันต่อ
           </span>
         </h1>
         
@@ -383,7 +383,7 @@
             class="col-span-4 md:col-span-12 row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`${apiUrl}/uploads/${ads.banner_top.image}`" 
+              :src="getAdImage(ads.banner_top.image)" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
             />
             <!-- Gradient Overlay -->
@@ -409,7 +409,7 @@
             class="col-span-4 md:col-span-7 row-span-3 relative rounded-2xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`${apiUrl}/uploads/${ads.bento_1.image}`" 
+              :src="getAdImage(ads.bento_1.image)" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
             />
             <!-- Glass Overlay -->
@@ -440,7 +440,7 @@
             class="col-span-2 md:col-span-5 row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`${apiUrl}/uploads/${ads.bento_2.image}`" 
+              :src="getAdImage(ads.bento_2.image)" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
@@ -461,7 +461,7 @@
             class="col-span-2 md:col-span-2 row-span-1 relative rounded-xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`${apiUrl}/uploads/${ads.bento_3.image}`" 
+              :src="getAdImage(ads.bento_3.image)" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
             />
             <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
@@ -476,7 +476,7 @@
             class="col-span-2 md:col-span-3 row-span-1 relative rounded-xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`${apiUrl}/uploads/${ads.bento_4.image}`" 
+              :src="getAdImage(ads.bento_4.image)" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
             />
             <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
@@ -669,9 +669,12 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '~/stores/auth';
 import { getProvinces } from '~/utils/thailandAddresses';
+import { mockListings, getPinnedListings } from '~/data/mockListings';
+import { getAdsObject } from '~/data/mockAds';
 
 const config = useRuntimeConfig();
 const apiUrl = config.public.apiUrl;
+const isDemoMode = config.public.demoMode === 'true' || config.public.demoMode === true;
 
 
 const router = useRouter();
@@ -798,9 +801,23 @@ const getCategoryCount = (type) => {
 
 const getListingImage = (listing) => {
   if (listing.images && listing.images.length > 0) {
-    return `${apiUrl}/uploads/${listing.images[0]}`;
+    const img = listing.images[0];
+    // If demo mode image path starts with 'demo/', use public folder
+    if (isDemoMode && img.startsWith('demo/')) {
+      return `/${img}`;
+    }
+    return `${apiUrl}/uploads/${img}`;
   }
   return 'https://placehold.co/600x400/166534/ffffff?text=Property';
+};
+
+// Get ad image URL helper (handles demo mode)
+const getAdImage = (img) => {
+  if (!img) return 'https://placehold.co/600x400/166534/ffffff?text=Ad';
+  if (isDemoMode && img.startsWith('demo/')) {
+    return `/${img}`;
+  }
+  return `${apiUrl}/uploads/${img}`;
 };
 
 const fetchFavorites = async () => {
@@ -979,6 +996,16 @@ onMounted(async () => {
   try {
     await fetchFavorites();
     
+    // Demo mode: use mock data
+    if (isDemoMode) {
+      listings.value = mockListings;
+      ads.value = getAdsObject();
+      pinnedListings.value = getPinnedListings();
+      loading.value = false;
+      return;
+    }
+    
+    // Production mode: fetch from API
     // Fetch listings
     try {
       const listingsRes = await axios.get(`${apiUrl}/api/listings`);

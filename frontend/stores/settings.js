@@ -1,22 +1,34 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import { getPublicSettings } from '~/data/mockSettings';
 
 export const useSettingsStore = defineStore('settings', {
     state: () => ({
-        siteName: 'AssetSale',
+        siteName: 'Real Estate',
         siteLogo: null,
-        settings: {}, // Store all settings
+        settings: {},
         loading: false
     }),
     actions: {
         async fetchSettings() {
             this.loading = true;
+            const config = useRuntimeConfig();
+            const isDemoMode = config.public.demoMode === 'true' || config.public.demoMode === true;
+
+            // Demo mode: use mock settings
+            if (isDemoMode) {
+                this.settings = getPublicSettings();
+                if (this.settings.site_name) this.siteName = this.settings.site_name;
+                if (this.settings.site_logo) this.siteLogo = this.settings.site_logo;
+                this.loading = false;
+                return;
+            }
+
+            // Production mode: use API
             try {
-                const config = useRuntimeConfig();
                 const apiUrl = config.public.apiUrl;
                 const response = await axios.get(`${apiUrl}/api/settings/public`);
                 this.settings = response.data;
-                console.log('setting', this.settings)
                 if (this.settings.site_name) this.siteName = this.settings.site_name;
                 if (this.settings.site_logo) this.siteLogo = this.settings.site_logo;
             } catch (error) {

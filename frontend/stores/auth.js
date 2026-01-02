@@ -1,21 +1,41 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import { authenticateDemoUser } from '~/data/mockUsers';
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         user: null,
-        token: null, // Should initialize from localStorage in a real app (using persist plugin or onMounted)
+        token: null,
     }),
     actions: {
         async login(email, password) {
+            const config = useRuntimeConfig();
+            const isDemoMode = config.public.demoMode === 'true' || config.public.demoMode === true;
+
+            // Demo mode: use mock authentication
+            if (isDemoMode) {
+                const result = authenticateDemoUser(email, password);
+                if (result.success) {
+                    this.token = result.token;
+                    this.user = result.user;
+
+                    if (process.client) {
+                        localStorage.setItem('token', this.token);
+                        localStorage.setItem('user', JSON.stringify(this.user));
+                    }
+                    return true;
+                } else {
+                    throw new Error(result.message);
+                }
+            }
+
+            // Production mode: use API
             try {
-                const config = useRuntimeConfig();
                 const apiUrl = config.public.apiUrl;
                 const response = await axios.post(`${apiUrl}/api/auth/login`, { email, password });
                 this.token = response.data.token;
                 this.user = response.data.user;
 
-                // Save to local storage (basic implementation)
                 if (process.client) {
                     localStorage.setItem('token', this.token);
                     localStorage.setItem('user', JSON.stringify(this.user));
@@ -28,8 +48,17 @@ export const useAuthStore = defineStore('auth', {
             }
         },
         async register(username, email, password) {
+            const config = useRuntimeConfig();
+            const isDemoMode = config.public.demoMode === 'true' || config.public.demoMode === true;
+
+            // Demo mode: simulate registration success
+            if (isDemoMode) {
+                console.log('Demo mode: Registration simulated for', email);
+                return true;
+            }
+
+            // Production mode: use API
             try {
-                const config = useRuntimeConfig();
                 const apiUrl = config.public.apiUrl;
                 await axios.post(`${apiUrl}/api/auth/register`, { username, email, password });
                 return true;
