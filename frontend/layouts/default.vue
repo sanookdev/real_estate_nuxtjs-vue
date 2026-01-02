@@ -105,6 +105,8 @@
             <ul class="space-y-2 text-sm text-gray-400">
               <li><NuxtLink to="/" class="hover:text-white">หน้าแรก</NuxtLink></li>
               <li><NuxtLink to="/listings" class="hover:text-white">ประกาศทั้งหมด</NuxtLink></li>
+              <li><NuxtLink to="/about" class="hover:text-white">เกี่ยวกับเรา</NuxtLink></li>
+              <li><NuxtLink to="/contacts" class="hover:text-white">ติดต่อเรา</NuxtLink></li>
             </ul>
           </div>
           <div>
