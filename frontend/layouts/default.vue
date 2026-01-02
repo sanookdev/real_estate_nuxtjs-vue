@@ -9,7 +9,7 @@
             <button @click="handleLogoClick" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <template v-if="settingsStore.siteLogo">
                 <img 
-                  :src="`http://localhost:5000/uploads/${settingsStore.siteLogo}`" 
+                  :src="`${apiUrl}/uploads/${settingsStore.siteLogo}`" 
                   alt="Logo" 
                   class="h-10 w-auto object-contain rounded-md bg-white/10 backdrop-blur-sm p-0.5"
                 />
@@ -150,6 +150,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
 const route = useRoute();
 const router = useRouter();
 const isScrolled = ref(false);

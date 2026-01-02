@@ -128,7 +128,7 @@
             <p class="text-sm font-medium text-gray-700 mb-2">รูปภาพปัจจุบัน (คลิก X เพื่อลบ)</p>
             <div class="flex gap-2 flex-wrap">
               <div v-for="(img, index) in existingImages" :key="index" class="relative group w-24 h-24">
-                <img :src="`http://localhost:5000/uploads/${img}`" class="w-full h-full object-cover rounded-lg border" />
+                <img :src="`${apiUrl}/uploads/${img}`" class="w-full h-full object-cover rounded-lg border" />
                 <button 
                   type="button"
                   @click="removeImage(index)"
@@ -156,6 +156,10 @@ import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useAuthStore } from '~/stores/auth';
 import { getProvinces, getDistricts, getSubdistricts, getPostalCode } from '~/utils/thailandAddresses';
+
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
 
 const route = useRoute();
 const router = useRouter();
@@ -205,7 +209,7 @@ onMounted(async () => {
 
 const fetchListing = async () => {
   try {
-    const { data } = await axios.get(`http://localhost:5000/api/listings/${route.params.id}`);
+    const { data } = await axios.get(`${apiUrl}/api/listings/${route.params.id}`);
     
     if (data.user_id !== authStore.user.id && authStore.user.role !== 'admin' && authStore.user.role !== 'superadmin') {
         const { $alertify } = useNuxtApp();
@@ -343,7 +347,7 @@ const updateListing = async () => {
       formData.append('images', file);
     });
 
-    await axios.put(`http://localhost:5000/api/listings/${route.params.id}`, formData, {
+    await axios.put(`${apiUrl}/api/listings/${route.params.id}`, formData, {
       headers: {
         Authorization: `Bearer ${authStore.token}`,
         'Content-Type': 'multipart/form-data'

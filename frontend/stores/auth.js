@@ -9,8 +9,9 @@ export const useAuthStore = defineStore('auth', {
     actions: {
         async login(email, password) {
             try {
-                // Assume backend running on localhost:5000
-                const response = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+                const config = useRuntimeConfig();
+                const apiUrl = config.public.apiUrl;
+                const response = await axios.post(`${apiUrl}/api/auth/login`, { email, password });
                 this.token = response.data.token;
                 this.user = response.data.user;
 
@@ -28,7 +29,9 @@ export const useAuthStore = defineStore('auth', {
         },
         async register(username, email, password) {
             try {
-                await axios.post('http://localhost:5000/api/auth/register', { username, email, password });
+                const config = useRuntimeConfig();
+                const apiUrl = config.public.apiUrl;
+                await axios.post(`${apiUrl}/api/auth/register`, { username, email, password });
                 return true;
             } catch (error) {
                 throw error;

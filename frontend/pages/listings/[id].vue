@@ -28,7 +28,7 @@
               <span>HOT</span>
             </div>
             <img 
-              :src="currentImage ? `http://localhost:5000/uploads/${currentImage}` : 'https://placehold.co/800x600/166534/ffffff?text=Property'" 
+              :src="currentImage ? `${apiUrl}/uploads/${currentImage}` : 'https://placehold.co/800x600/166534/ffffff?text=Property'" 
               class="w-full h-[450px] object-cover"
               :class="{ 'pt-12': listing.status === 'sold' }"
             />
@@ -42,7 +42,7 @@
               class="w-24 h-16 rounded-lg overflow-hidden cursor-pointer border-2 shrink-0 transition-all"
               :class="currentImage === img ? 'border-green-500' : 'border-transparent hover:border-gray-300'"
             >
-              <img :src="`http://localhost:5000/uploads/${img}`" class="w-full h-full object-cover" />
+              <img :src="`${apiUrl}/uploads/${img}`" class="w-full h-full object-cover" />
             </div>
           </div>
 
@@ -157,8 +157,6 @@
           </NuxtLink>
         </div>
       </div>
-
-
       <!-- Related Listings -->
       <div v-if="relatedListings.length > 0" class="mt-16">
         <h2 class="text-3xl font-bold text-gray-900 mb-8 border-l-4 border-green-600 pl-4">
@@ -174,7 +172,7 @@
           >
             <div class="relative h-48 overflow-hidden">
               <img 
-                :src="related.images && related.images.length ? `http://localhost:5000/uploads/${related.images[0]}` : 'https://placehold.co/400x300/166534/ffffff?text=Property'" 
+                :src="related.images && related.images.length ? `${apiUrl}/uploads/${related.images[0]}` : 'https://placehold.co/400x300/166534/ffffff?text=Property'" 
                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <span class="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
@@ -219,6 +217,10 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useAuthStore } from '~/stores/auth';
+
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
 
 const route = useRoute();
 const router = useRouter();
@@ -266,13 +268,13 @@ const formatDate = (dateString) => {
 
 onMounted(async () => {
     try {
-        const response = await axios.get(`http://localhost:5000/api/listings/${route.params.id}`);
+        const response = await axios.get(`${apiUrl}/api/listings/${route.params.id}`);
         listing.value = response.data;
         if (listing.value.images && listing.value.images.length > 0) {
             currentImage.value = listing.value.images[0];
         }
 
-        const allResponse = await axios.get('http://localhost:5000/api/listings');
+        const allResponse = await axios.get(`${apiUrl}/api/listings`);
         if (allResponse.data && allResponse.data.listings) {
             relatedListings.value = allResponse.data.listings
                 .filter(item => item.type === listing.value.type && item.id !== listing.value.id)
@@ -296,7 +298,7 @@ const isFavorited = computed(() => {
 const fetchFavorites = async () => {
   if (authStore.user) {
     try {
-      const response = await axios.get('http://localhost:5000/api/favorites', {
+      const response = await axios.get(`${apiUrl}/api/favorites`, {
         headers: { Authorization: `Bearer ${authStore.token}` }
       });
       favorites.value = response.data;
@@ -315,7 +317,7 @@ const toggleFavorite = async () => {
     if (!listing.value) return;
 
     try {
-        const response = await axios.post('http://localhost:5000/api/favorites/toggle', 
+        const response = await axios.post(`${apiUrl}/api/favorites/toggle`, 
             { listingId: listing.value.id },
             { headers: { Authorization: `Bearer ${authStore.token}` } }
         );

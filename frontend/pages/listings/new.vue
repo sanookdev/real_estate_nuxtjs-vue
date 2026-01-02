@@ -229,6 +229,10 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { getProvinces, getDistricts, getSubdistricts, getPostalCode } from '~/utils/thailandAddresses';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+
 const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
@@ -347,7 +351,7 @@ const handleSubmit = async () => {
             formData.append('images', files.value[i]);
         }
 
-        await axios.post('http://localhost:5000/api/listings', formData, {
+        await axios.post(`${apiUrl}/api/listings`, formData, {
             headers: { 
                 Authorization: `Bearer ${authStore.token}`,
                 'Content-Type': 'multipart/form-data'

@@ -89,7 +89,7 @@
             
             <div class="h-48 overflow-hidden relative">
               <img 
-                :src="listing.images && listing.images.length ? `http://localhost:5000/uploads/${listing.images[0]}` : 'https://placehold.co/600x400/166534/ffffff?text=Property'" 
+                :src="listing.images && listing.images.length ? `${apiUrl}/uploads/${listing.images[0]}` : 'https://placehold.co/600x400/166534/ffffff?text=Property'" 
                 class="w-full h-full object-cover"
                 :class="{ 'grayscale opacity-70': listing.status === 'inactive' }"
               />
@@ -164,6 +164,10 @@ import { useAuthStore } from '~/stores/auth';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+
 const authStore = useAuthStore();
 const router = useRouter();
 const listings = ref([]);
@@ -184,7 +188,7 @@ onMounted(async () => {
 
 const fetchListings = async () => {
     try {
-        const response = await axios.get('http://localhost:5000/api/listings/user/my-listings', {
+        const response = await axios.get(`${apiUrl}/api/listings/user/my-listings`, {
             headers: { Authorization: `Bearer ${authStore.token}` }
         });
         listings.value = response.data;
@@ -198,7 +202,7 @@ const fetchListings = async () => {
 const deleteListing = async (id) => {
     if (!confirm('คุณแน่ใจหรือไม่ที่จะลบประกาศนี้?')) return;
     try {
-        await axios.delete(`http://localhost:5000/api/listings/${id}`, {
+        await axios.delete(`${apiUrl}/api/listings/${id}`, {
             headers: { Authorization: `Bearer ${authStore.token}` }
         });
         listings.value = listings.value.filter(l => l.id !== id);
@@ -209,7 +213,7 @@ const deleteListing = async (id) => {
 
 const updateListingStatus = async (id, status) => {
     try {
-        await axios.patch(`http://localhost:5000/api/listings/${id}/my-status`, 
+        await axios.patch(`${apiUrl}/api/listings/${id}/my-status`, 
             { status },
             { headers: { Authorization: `Bearer ${authStore.token}` } }
         );

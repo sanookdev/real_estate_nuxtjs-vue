@@ -81,13 +81,17 @@
 import { ref } from 'vue';
 import axios from 'axios';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+
 const email = ref('');
 const loading = ref(false);
 
 const handleSubmit = async () => {
   loading.value = true;
   try {
-    await axios.post('http://localhost:5000/api/auth/forgot-password', { email: email.value });
+    await axios.post(`${apiUrl}/api/auth/forgot-password`, { email: email.value });
     const { $alertify } = useNuxtApp();
     $alertify.success('ส่งลิงก์รีเซ็ตรหัสผ่านไปที่อีเมลของคุณแล้ว');
     email.value = '';

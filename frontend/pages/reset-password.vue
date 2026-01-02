@@ -91,6 +91,10 @@ import { ref } from 'vue';
 import axios from 'axios';
 import { useRoute, useRouter } from 'vue-router';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+
 const newPassword = ref('');
 const confirmPassword = ref('');
 const loading = ref(false);
@@ -119,7 +123,7 @@ const handleSubmit = async () => {
 
   loading.value = true;
   try {
-    await axios.post('http://localhost:5000/api/auth/reset-password', { 
+    await axios.post(`${apiUrl}/api/auth/reset-password`, { 
         token: token,
         newPassword: newPassword.value 
     });

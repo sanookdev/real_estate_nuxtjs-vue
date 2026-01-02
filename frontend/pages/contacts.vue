@@ -172,6 +172,8 @@ import { ref, reactive, onMounted } from 'vue';
 import axios from 'axios';
 import { useSettingsStore } from '~/stores/settings';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
 
 const settingsStore = useSettingsStore();
 const mounted = ref(false);
@@ -211,7 +213,7 @@ const handleSubmit = async () => {
   error.value = '';
   
   try {
-    await axios.post('http://localhost:5000/api/contact', form);
+    await axios.post(`${apiUrl}/api/contact`, form);
     success.value = 'ส่งข้อความเรียบร้อยแล้ว! เจ้าหน้าที่จะติดต่อกลับโดยเร็วที่สุด';
     // Clear form
     Object.keys(form).forEach(key => form[key] = '');

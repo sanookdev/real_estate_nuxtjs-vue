@@ -383,7 +383,7 @@
             class="col-span-4 md:col-span-12 row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`http://localhost:5000/uploads/${ads.banner_top.image}`" 
+              :src="`${apiUrl}/uploads/${ads.banner_top.image}`" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
             />
             <!-- Gradient Overlay -->
@@ -409,7 +409,7 @@
             class="col-span-4 md:col-span-7 row-span-3 relative rounded-2xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`http://localhost:5000/uploads/${ads.bento_1.image}`" 
+              :src="`${apiUrl}/uploads/${ads.bento_1.image}`" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
             />
             <!-- Glass Overlay -->
@@ -440,7 +440,7 @@
             class="col-span-2 md:col-span-5 row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`http://localhost:5000/uploads/${ads.bento_2.image}`" 
+              :src="`${apiUrl}/uploads/${ads.bento_2.image}`" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
             />
             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
@@ -461,7 +461,7 @@
             class="col-span-2 md:col-span-2 row-span-1 relative rounded-xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`http://localhost:5000/uploads/${ads.bento_3.image}`" 
+              :src="`${apiUrl}/uploads/${ads.bento_3.image}`" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
             />
             <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
@@ -476,7 +476,7 @@
             class="col-span-2 md:col-span-3 row-span-1 relative rounded-xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`http://localhost:5000/uploads/${ads.bento_4.image}`" 
+              :src="`${apiUrl}/uploads/${ads.bento_4.image}`" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
             />
             <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
@@ -619,8 +619,6 @@
         </div>
       </div>
     </section>
-
-
     <!-- CTA Section (Premium Dark) -->
     <section class="py-32 relative overflow-hidden bg-slate-900">
       <!-- Sophisticated Background -->
@@ -671,6 +669,10 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '~/stores/auth';
 import { getProvinces } from '~/utils/thailandAddresses';
+
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
 
 const router = useRouter();
 const listings = ref([]);
@@ -796,7 +798,7 @@ const getCategoryCount = (type) => {
 
 const getListingImage = (listing) => {
   if (listing.images && listing.images.length > 0) {
-    return `http://localhost:5000/uploads/${listing.images[0]}`;
+    return `${apiUrl}/uploads/${listing.images[0]}`;
   }
   return 'https://placehold.co/600x400/166534/ffffff?text=Property';
 };
@@ -805,7 +807,7 @@ const fetchFavorites = async () => {
   const authStore = useAuthStore();
   if (authStore.user) {
     try {
-      const response = await axios.get('http://localhost:5000/api/favorites', {
+      const response = await axios.get(`${apiUrl}/api/favorites`, {
         headers: { Authorization: `Bearer ${authStore.token}` }
       });
       favorites.value = response.data;
@@ -823,7 +825,7 @@ const toggleFavorite = async (id) => {
   }
   
   try {
-    const response = await axios.post('http://localhost:5000/api/favorites/toggle', 
+    const response = await axios.post(`${apiUrl}/api/favorites/toggle`, 
       { listingId: id },
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     );
@@ -979,7 +981,7 @@ onMounted(async () => {
     
     // Fetch listings
     try {
-      const listingsRes = await axios.get('http://localhost:5000/api/listings');
+      const listingsRes = await axios.get(`${apiUrl}/api/listings`);
       listings.value = listingsRes.data.listings || [];
     } catch (e) {
       console.error('Error fetching listings:', e);
@@ -987,7 +989,7 @@ onMounted(async () => {
     
     // Fetch ads
     try {
-      const adsRes = await axios.get('http://localhost:5000/api/ads/active');
+      const adsRes = await axios.get(`${apiUrl}/api/ads/active`);
       const adList = adsRes.data;
       ads.value = {
         banner_top: adList.find(a => a.position === 'banner-top'),
@@ -1002,7 +1004,7 @@ onMounted(async () => {
 
     // Fetch pinned listings for Hot Sale section
     try {
-      const pinnedRes = await axios.get('http://localhost:5000/api/listings/pinned');
+      const pinnedRes = await axios.get(`${apiUrl}/api/listings/pinned`);
       pinnedListings.value = pinnedRes.data;
     } catch (e) {
       console.error('Error fetching pinned listings:', e);

@@ -34,6 +34,10 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+
 const route = useRoute();
 const loading = ref(true);
 const success = ref(false);
@@ -49,7 +53,7 @@ onMounted(async () => {
   }
 
   try {
-    await axios.post('http://localhost:5000/api/auth/verify-email', { token });
+    await axios.post(`${apiUrl}/api/auth/verify-email`, { token });
     success.value = true;
     message.value = 'อีเมลของคุณได้รับการยืนยันแล้ว คุณสามารถเข้าสู่ระบบได้ทันที';
   } catch (error) {

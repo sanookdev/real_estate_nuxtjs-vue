@@ -12,7 +12,9 @@ export const useSettingsStore = defineStore('settings', {
         async fetchSettings() {
             this.loading = true;
             try {
-                const response = await axios.get('http://localhost:5000/api/settings/public');
+                const config = useRuntimeConfig();
+                const apiUrl = config.public.apiUrl;
+                const response = await axios.get(`${apiUrl}/api/settings/public`);
                 this.settings = response.data;
                 console.log('setting', this.settings)
                 if (this.settings.site_name) this.siteName = this.settings.site_name;

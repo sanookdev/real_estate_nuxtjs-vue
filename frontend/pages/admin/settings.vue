@@ -30,7 +30,7 @@
             <UFormGroup label="โลโก้เว็บไซต์ (Site Logo)" name="site_logo_upload">
               <div class="flex items-center gap-4">
                 <div v-if="settings.site_logo" class="shrink-0">
-                  <img :src="`http://localhost:5000/uploads/${settings.site_logo}`" alt="Current Logo" class="h-12 w-12 object-contain rounded border border-gray-200 p-1">
+                  <img :src="`${apiUrl}/uploads/${settings.site_logo}`" alt="Current Logo" class="h-12 w-12 object-contain rounded border border-gray-200 p-1">
                 </div>
                 <input type="file" @change="onLogoChange" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
               </div>
@@ -41,7 +41,7 @@
             <UFormGroup label="ไอคอนเว็บไซต์ (Favicon)" name="site_favicon_upload">
               <div class="flex items-center gap-4">
                 <div v-if="settings.site_favicon" class="shrink-0">
-                  <img :src="`http://localhost:5000/uploads/${settings.site_favicon}`" alt="Current Favicon" class="h-8 w-8 object-contain rounded border border-gray-200 p-1">
+                  <img :src="`${apiUrl}/uploads/${settings.site_favicon}`" alt="Current Favicon" class="h-8 w-8 object-contain rounded border border-gray-200 p-1">
                 </div>
                 <input type="file" @change="onFaviconChange" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
               </div>
@@ -53,8 +53,6 @@
             </UFormGroup>
           </div>
         </UCard>
-
-
         <!-- Content Settings -->
         <UCard>
           <template #header>
@@ -195,6 +193,10 @@ import { useSettingsStore } from '~/stores/settings';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
 const router = useRouter();
@@ -236,7 +238,7 @@ onMounted(async () => {
 const fetchSettings = async () => {
     loading.value = true;
     try {
-        const response = await axios.get('http://localhost:5000/api/settings', {
+        const response = await axios.get(`${apiUrl}/api/settings`, {
             headers: { Authorization: `Bearer ${authStore.token}` }
         });
         
@@ -291,7 +293,7 @@ const saveSettings = async () => {
             formData.append('site_favicon', faviconFile.value);
         }
 
-        const response = await axios.put('http://localhost:5000/api/settings', formData, {
+        const response = await axios.put(`${apiUrl}/api/settings`, formData, {
             headers: { 
                 Authorization: `Bearer ${authStore.token}`,
                 'Content-Type': 'multipart/form-data'
@@ -327,7 +329,7 @@ const sendTestEmail = async () => {
     }
     testLoading.value = true;
     try {
-        await axios.post('http://localhost:5000/api/settings/test-email', 
+        await axios.post(`${apiUrl}/api/settings/test-email`, 
             { email: testEmail.value },
             { headers: { Authorization: `Bearer ${authStore.token}` } }
         );

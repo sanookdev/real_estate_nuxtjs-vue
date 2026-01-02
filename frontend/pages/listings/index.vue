@@ -188,7 +188,7 @@
               <!-- Image -->
               <div class="relative h-52 overflow-hidden">
                 <img 
-                  :src="listing.images && listing.images.length ? `http://localhost:5000/uploads/${listing.images[0]}` : 'https://placehold.co/600x400/166534/ffffff?text=Property'" 
+                  :src="listing.images && listing.images.length ? `${apiUrl}/uploads/${listing.images[0]}` : 'https://placehold.co/600x400/166534/ffffff?text=Property'" 
                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <!-- Badges -->
@@ -297,6 +297,10 @@ import axios from 'axios';
 import { getProvinces } from '~/utils/thailandAddresses';
 import { useAuthStore } from '~/stores/auth';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+
 const router = useRouter(); // Was already imported but ensure correct
 const route = useRoute();
 const authStore = useAuthStore();
@@ -345,8 +349,6 @@ const priceRanges = [
   { value: '5m_10m', label: '5 - 10 ล้านบาท' },
   { value: 'above_10m', label: 'มากกว่า 10 ล้านบาท' }
 ];
-
-
 
 const filteredListings = computed(() => {
   let result = listings.value.filter(listing => {
@@ -477,7 +479,7 @@ onMounted(async () => {
   if (route.query.isPinned) filters.isPinned = route.query.isPinned === 'true';
 
   try {
-    const response = await axios.get('http://localhost:5000/api/listings');
+    const response = await axios.get(`${apiUrl}/api/listings`);
     listings.value = response.data.listings || [];
     await fetchFavorites();
   } catch (error) {
@@ -494,7 +496,7 @@ onMounted(async () => {
 const fetchFavorites = async () => {
   if (authStore.user) {
     try {
-      const response = await axios.get('http://localhost:5000/api/favorites', {
+      const response = await axios.get(`${apiUrl}/api/favorites`, {
         headers: { Authorization: `Bearer ${authStore.token}` }
       });
       favorites.value = response.data;
@@ -511,7 +513,7 @@ const toggleFavorite = async (id) => {
   }
   
   try {
-    const response = await axios.post('http://localhost:5000/api/favorites/toggle', 
+    const response = await axios.post(`${apiUrl}/api/favorites/toggle`, 
       { listingId: id },
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     );

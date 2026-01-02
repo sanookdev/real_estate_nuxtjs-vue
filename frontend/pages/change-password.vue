@@ -38,6 +38,10 @@ import axios from 'axios';
 import { useAuthStore } from '~/stores/auth';
 import { useRouter } from 'vue-router';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+
 const authStore = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
@@ -67,7 +71,7 @@ const handleChangePassword = async () => {
 
   loading.value = true;
   try {
-    await axios.post('http://localhost:5000/api/auth/change-password', 
+    await axios.post(`${apiUrl}/api/auth/change-password`, 
       {
         oldPassword: form.oldPassword,
         newPassword: form.newPassword

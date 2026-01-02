@@ -249,7 +249,7 @@
         <UCard>
           <UTable :rows="ads" :columns="adColumns" :loading="loadingAds">
             <template #image-data="{ row }">
-              <img :src="`http://localhost:5000/uploads/${row.image}`" class="h-16 w-auto object-cover rounded" />
+              <img :src="`${apiUrl}/uploads/${row.image}`" class="h-16 w-auto object-cover rounded" />
             </template>
             
             <template #active-data="{ row }">
@@ -306,6 +306,10 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '~/stores/auth';
+
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
 
 const authStore = useAuthStore();
 const activeTab = ref('listings');
@@ -365,7 +369,7 @@ onMounted(async () => {
 const fetchListings = async () => {
   loadingListings.value = true;
   try {
-    const response = await axios.get('http://localhost:5000/api/listings/admin/all', {
+    const response = await axios.get(`${apiUrl}/api/listings/admin/all`, {
       headers: { Authorization: `Bearer ${authStore.token}` },
       params: {
         page: currentPage.value,
@@ -439,7 +443,7 @@ const pendingListings = computed(() => {
 
 const getListingImage = (listing) => {
   if (listing.images && listing.images.length > 0) {
-    return `http://localhost:5000/uploads/${listing.images[0]}`;
+    return `${apiUrl}/uploads/${listing.images[0]}`;
   }
   return 'https://placehold.co/100x100?text=No+Image';
 };
@@ -491,7 +495,7 @@ const rejectListing = (id) => {
 
 const updateStatus = async (id, status) => {
   try {
-    await axios.patch(`http://localhost:5000/api/listings/${id}/status`, 
+    await axios.patch(`${apiUrl}/api/listings/${id}/status`, 
       { status },
       { headers: { Authorization: `Bearer ${authStore.token}` } }
     );
@@ -513,7 +517,7 @@ const deleteListing = (id) => {
   $alertify.confirm('ยืนยันการลบ', 'คุณต้องการลบประกาศนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้',
     async function() {
       try {
-        await axios.delete(`http://localhost:5000/api/listings/${id}`, {
+        await axios.delete(`${apiUrl}/api/listings/${id}`, {
           headers: { Authorization: `Bearer ${authStore.token}` }
         });
         listings.value = listings.value.filter(l => l.id !== id);
@@ -528,7 +532,7 @@ const deleteListing = (id) => {
 
 const togglePin = async (id) => {
   try {
-    const response = await axios.patch(`http://localhost:5000/api/listings/${id}/pin`, {}, {
+    const response = await axios.patch(`${apiUrl}/api/listings/${id}/pin`, {}, {
       headers: { Authorization: `Bearer ${authStore.token}` }
     });
     
@@ -555,7 +559,7 @@ const togglePin = async (id) => {
 const fetchUsers = async () => {
   loadingUsers.value = true;
   try {
-    const response = await axios.get('http://localhost:5000/api/users', {
+    const response = await axios.get(`${apiUrl}/api/users`, {
       headers: { Authorization: `Bearer ${authStore.token}` }
     });
     users.value = response.data;
@@ -581,7 +585,7 @@ const approveUser = async (id) => {
     const { $alertify } = useNuxtApp();
     $alertify.confirm('ยืนยัน', 'ต้องการปลดบล็อก/อนุมัติผู้ใช้งานนี้?', async function() {
         try {
-            await axios.put(`http://localhost:5000/api/users/${id}/approve`, {}, {
+            await axios.put(`${apiUrl}/api/users/${id}/approve`, {}, {
                 headers: { Authorization: `Bearer ${authStore.token}` }
             });
             $alertify.success('อนุมัติผู้ใช้งานเรียบร้อย');
@@ -596,7 +600,7 @@ const blockUser = async (id) => {
     const { $alertify } = useNuxtApp();
     $alertify.confirm('ยืนยัน', 'ต้องการระงับการใช้งานผู้ใช้งานนี้?', async function() {
         try {
-            await axios.put(`http://localhost:5000/api/users/${id}/block`, {}, {
+            await axios.put(`${apiUrl}/api/users/${id}/block`, {}, {
                 headers: { Authorization: `Bearer ${authStore.token}` }
             });
             $alertify.success('ระงับการใช้งานเรียบร้อย');
@@ -611,7 +615,7 @@ const changeRole = async (id, role) => {
     const { $alertify } = useNuxtApp();
     $alertify.confirm('ยืนยัน', `ต้องการเปลี่ยนสิทธิ์เป็น ${role}?`, async function() {
         try {
-            await axios.put(`http://localhost:5000/api/users/${id}/role`, 
+            await axios.put(`${apiUrl}/api/users/${id}/role`, 
                 { role }, 
                 { headers: { Authorization: `Bearer ${authStore.token}` } }
             );
@@ -658,7 +662,7 @@ const adForm = ref({
 const fetchAds = async () => {
     loadingAds.value = true;
     try {
-        const response = await axios.get('http://localhost:5000/api/ads/all', {
+        const response = await axios.get(`${apiUrl}/api/ads/all`, {
             headers: { Authorization: `Bearer ${authStore.token}` }
         });
         ads.value = response.data;
@@ -708,8 +712,8 @@ const saveAd = async () => {
 
   try {
     const url = isEditingAd.value 
-      ? `http://localhost:5000/api/ads/${editingAdId.value}`
-      : 'http://localhost:5000/api/ads';
+      ? `${apiUrl}/api/ads/${editingAdId.value}`
+      : `${apiUrl}/api/ads`;
     
     const method = isEditingAd.value ? 'put' : 'post';
     
@@ -736,7 +740,7 @@ const deleteAd = async (id) => {
   const { $alertify } = useNuxtApp();
   $alertify.confirm('ยืนยันการลบ', 'คุณต้องการลบโฆษณานี้ใช่หรือไม่?', async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/ads/${id}`, {
+      await axios.delete(`${apiUrl}/api/ads/${id}`, {
         headers: { Authorization: `Bearer ${authStore.token}` }
       });
       $alertify.success('ลบข้อมูลเรียบร้อย');
@@ -746,8 +750,6 @@ const deleteAd = async (id) => {
     }
   }, () => {});
 };
-
-
 </script>
 
 <style scoped>

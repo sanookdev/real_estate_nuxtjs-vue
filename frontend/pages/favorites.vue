@@ -104,6 +104,10 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useAuthStore } from '~/stores/auth';
 
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+
 const authStore = useAuthStore();
 const favorites = ref([]);
 const loading = ref(true);
@@ -121,7 +125,7 @@ onMounted(async () => {
 const fetchFavorites = async () => {
   loading.value = true;
   try {
-    const response = await axios.get('http://localhost:5000/api/favorites/details', {
+    const response = await axios.get(`${apiUrl}/api/favorites/details`, {
       headers: { Authorization: `Bearer ${authStore.token}` }
     });
     favorites.value = response.data;
@@ -134,7 +138,7 @@ const fetchFavorites = async () => {
 
 const getListingImage = (listing) => {
   if (listing.images && listing.images.length > 0) {
-    return `http://localhost:5000/uploads/${listing.images[0]}`;
+    return `${apiUrl}/uploads/${listing.images[0]}`;
   }
   return 'https://placehold.co/600x400/166534/ffffff?text=Property';
 };
@@ -144,7 +148,7 @@ const removeFavorite = (id) => {
   $alertify.confirm('ยืนยันการลบ', 'คุณต้องการลบรายการนี้ออกจากรายการโปรดใช่หรือไม่?',
     async function() {
       try {
-        await axios.post('http://localhost:5000/api/favorites/toggle', 
+        await axios.post(`${apiUrl}/api/favorites/toggle`, 
           { listingId: id },
           { headers: { Authorization: `Bearer ${authStore.token}` } }
         );
