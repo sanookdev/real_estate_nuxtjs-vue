@@ -21,7 +21,7 @@
             <UIcon name="i-heroicons-user-plus" class="text-3xl text-white" />
           </div>
           <h2 class="text-3xl font-bold text-white tracking-tight">สร้างบัญชีใหม่</h2>
-          <p class="mt-2 text-sm text-gray-400">เริ่มต้นค้นหาบ้านในฝันกับเราวันนี้</p>
+          <p class="mt-2 text-sm text-gray-400">สมัครสมาชิกวันนี้</p>
         </div>
 
         <form class="space-y-6" @submit.prevent="handleRegister">
