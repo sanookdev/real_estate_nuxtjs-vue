@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-900 py-24 px-4 sm:px-6 lg:px-8">
     <!-- Animated Background Elements -->
     <div class="absolute inset-0 overflow-hidden z-0">
       <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gray-900 via-green-900/20 to-gray-900 z-0"></div>
@@ -12,8 +12,8 @@
     </div>
 
     <!-- Glassmorphism Card -->
-    <div class="max-w-md w-full space-y-8 relative z-10">
-      <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 shadow-2xl transform transition-all duration-500 hover:shadow-green-500/10 hover:border-white/30">
+    <div class="max-w-md w-full space-y-8 relative z-10 mx-4 sm:mx-auto">
+      <div class="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl transform transition-all duration-500 hover:shadow-green-500/10 hover:border-white/30">
         
         <!-- Header -->
         <div class="text-center mb-8">
