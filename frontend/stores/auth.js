@@ -27,12 +27,12 @@ export const useAuthStore = defineStore('auth', {
                 throw error;
             }
         },
-        async register(username, email, password) {
+        async register(username, email, phone, password) {
             try {
                 const config = useRuntimeConfig();
                 const apiUrl = config.public.apiUrl;
-                await axios.post(`${apiUrl}/api/auth/register`, { username, email, password });
-                return true;
+                const response = await axios.post(`${apiUrl}/api/auth/register`, { username, email, phone, password });
+                return response.data;
             } catch (error) {
                 throw error;
             }

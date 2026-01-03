@@ -8,11 +8,11 @@ CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    phone VARCHAR(20) DEFAULT NULL,
     password_hash VARCHAR(255) NOT NULL,
     role ENUM('user', 'admin', 'superadmin') DEFAULT 'user',
     status ENUM('pending', 'approved', 'blocked') DEFAULT 'pending',
     email_verified_at DATETIME DEFAULT NULL,
-    verification_token VARCHAR(255) DEFAULT NULL,
     reset_password_token VARCHAR(255) DEFAULT NULL,
     reset_password_expires DATETIME DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -20,8 +20,24 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_email (email),
     INDEX idx_role (role),
     INDEX idx_status (status),
-    INDEX idx_verification_token (verification_token),
     INDEX idx_reset_token (reset_password_token)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Pending Email Verifications (Pre-Register OTP)
+-- ============================================
+CREATE TABLE IF NOT EXISTS pending_verifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    otp_code VARCHAR(6) NOT NULL,
+    otp_expires DATETIME NOT NULL,
+    otp_attempts INT DEFAULT 0,
+    lockout_until DATETIME DEFAULT NULL,
+    registration_token VARCHAR(64) DEFAULT NULL,
+    verified_at DATETIME DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email (email),
+    INDEX idx_registration_token (registration_token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================

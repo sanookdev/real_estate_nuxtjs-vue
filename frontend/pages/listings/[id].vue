@@ -119,6 +119,37 @@
             </p>
           </div>
 
+          <!-- Address Details -->
+          <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <i class="fas fa-map-marker-alt text-green-600"></i> ที่อยู่ทรัพย์
+            </h3>
+            <div class="space-y-3 text-gray-600">
+              <p v-if="listing.location">
+                <span class="text-gray-500">ที่ตั้ง:</span> 
+                <span class="font-medium text-gray-900">{{ listing.location }}</span>
+              </p>
+              <div class="grid grid-cols-2 gap-3">
+                <div v-if="listing.subdistrict" class="bg-gray-50 rounded-lg p-3">
+                  <span class="text-xs text-gray-500 block">ตำบล/แขวง</span>
+                  <span class="font-medium text-gray-900">{{ listing.subdistrict }}</span>
+                </div>
+                <div v-if="listing.district" class="bg-gray-50 rounded-lg p-3">
+                  <span class="text-xs text-gray-500 block">อำเภอ/เขต</span>
+                  <span class="font-medium text-gray-900">{{ listing.district }}</span>
+                </div>
+                <div v-if="listing.province" class="bg-gray-50 rounded-lg p-3">
+                  <span class="text-xs text-gray-500 block">จังหวัด</span>
+                  <span class="font-medium text-gray-900">{{ listing.province }}</span>
+                </div>
+                <div v-if="listing.postal_code" class="bg-gray-50 rounded-lg p-3">
+                  <span class="text-xs text-gray-500 block">รหัสไปรษณีย์</span>
+                  <span class="font-medium text-gray-900">{{ listing.postal_code }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Google Map -->
           <div v-if="listing.google_map_link" class="bg-white rounded-2xl p-6 shadow-sm">
             <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -145,10 +176,27 @@
               <p class="text-gray-600">
                 <span class="font-medium text-gray-900">อีเมล:</span> {{ listing.email }}
               </p>
+              <p v-if="listing.phone" class="text-gray-600">
+                <span class="font-medium text-gray-900">โทรศัพท์:</span> 
+                <a :href="`tel:${listing.phone}`" class="text-green-600 hover:text-green-700 font-medium">
+                  {{ listing.phone }}
+                </a>
+              </p>
             </div>
-            <button class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mt-6 transition-colors">
-              <i class="fas fa-phone"></i> สนใจทรัพย์นี้
-            </button>
+            <a 
+              v-if="listing.phone"
+              :href="`tel:${listing.phone}`"
+              class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mt-6 transition-colors"
+            >
+              <i class="fas fa-phone"></i> โทรหาผู้ขาย
+            </a>
+            <a 
+              v-else
+              :href="`mailto:${listing.email}?subject=สนใจทรัพย์: ${listing.title}`"
+              class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mt-6 transition-colors"
+            >
+              <i class="fas fa-envelope"></i> ติดต่อทางอีเมล
+            </a>
           </div>
 
           <!-- Back Button -->

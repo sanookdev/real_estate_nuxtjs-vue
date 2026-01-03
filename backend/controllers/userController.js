@@ -62,3 +62,32 @@ exports.updateUserRole = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 }
+
+exports.deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const requestingUserId = req.user.id;
+
+        // Prevent deleting self
+        if (parseInt(id) === requestingUserId) {
+            return res.status(400).json({ message: 'ไม่สามารถลบบัญชีตัวเองได้' });
+        }
+
+        const user = await UserModel.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: 'ไม่พบผู้ใช้งาน' });
+        }
+
+        // Prevent deleting superadmin
+        if (user.role === 'superadmin') {
+            return res.status(403).json({ message: 'ไม่สามารถลบ Superadmin ได้' });
+        }
+
+        await UserModel.deleteUser(id);
+        res.json({ message: 'ลบผู้ใช้งานเรียบร้อย' });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}

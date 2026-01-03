@@ -86,13 +86,71 @@
               </select>
             </div>
 
-            <!-- Location -->
-            <div class="mb-6">
+            <!-- Location - Province -->
+            <div class="mb-4">
               <label class="block text-sm font-medium text-gray-700 mb-2">จังหวัด</label>
-              <select v-model="filters.province" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                <option value="">ทุกจังหวัด</option>
-                <option v-for="prov in provinces" :key="prov" :value="prov">{{ prov }}</option>
-              </select>
+              <USelectMenu
+                v-model="filters.province"
+                :options="provinceOptions"
+                placeholder="พิมพ์ค้นหาหรือเลือกจังหวัด..."
+                searchable
+                searchable-placeholder="พิมพ์ชื่อจังหวัด..."
+                clear-search-on-close
+                :search-attributes="['label']"
+                option-attribute="label"
+                value-attribute="value"
+                @change="onProvinceChange"
+                class="w-full"
+              >
+                <template #empty>
+                  <span class="text-gray-400 text-sm">ไม่พบจังหวัดที่ค้นหา</span>
+                </template>
+              </USelectMenu>
+            </div>
+
+            <!-- Location - District (อำเภอ) -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-2">อำเภอ/เขต</label>
+              <USelectMenu
+                v-model="filters.district"
+                :options="districtOptions"
+                placeholder="พิมพ์ค้นหาหรือเลือกอำเภอ..."
+                searchable
+                searchable-placeholder="พิมพ์ชื่ออำเภอ..."
+                clear-search-on-close
+                :search-attributes="['label']"
+                option-attribute="label"
+                value-attribute="value"
+                :disabled="!filters.province || districts.length === 0"
+                @change="onDistrictChange"
+                class="w-full"
+              >
+                <template #empty>
+                  <span class="text-gray-400 text-sm">ไม่พบอำเภอที่ค้นหา</span>
+                </template>
+              </USelectMenu>
+            </div>
+
+            <!-- Location - Subdistrict (ตำบล) -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">ตำบล/แขวง</label>
+              <USelectMenu
+                v-model="filters.subdistrict"
+                :options="subdistrictOptions"
+                placeholder="พิมพ์ค้นหาหรือเลือกตำบล..."
+                searchable
+                searchable-placeholder="พิมพ์ชื่อตำบล..."
+                clear-search-on-close
+                :search-attributes="['label']"
+                option-attribute="label"
+                value-attribute="value"
+                :disabled="!filters.district || subdistricts.length === 0"
+                class="w-full"
+              >
+                <template #empty>
+                  <span class="text-gray-400 text-sm">ไม่พบตำบลที่ค้นหา</span>
+                </template>
+              </USelectMenu>
             </div>
 
             <!-- Condition -->
@@ -294,7 +352,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import { getProvinces } from '~/utils/thailandAddresses';
+import { getProvinces, getDistricts, getSubdistricts } from '~/utils/thailandAddresses';
 import { useAuthStore } from '~/stores/auth';
 
 const config = useRuntimeConfig();
@@ -327,12 +385,60 @@ const filters = reactive({
   type: '',
   priceRange: '',
   province: '',
-  province: '',
+  district: '',
+  subdistrict: '',
   condition: '',
   isPinned: false
 });
 
 const provinces = ref([]);
+const districts = ref([]);
+const subdistricts = ref([]);
+
+// Cascading location handlers
+const onProvinceChange = async () => {
+  filters.district = '';
+  filters.subdistrict = '';
+  subdistricts.value = [];
+  
+  if (filters.province) {
+    districts.value = await getDistricts(filters.province);
+  } else {
+    districts.value = [];
+  }
+};
+
+const onDistrictChange = async () => {
+  filters.subdistrict = '';
+  
+  if (filters.province && filters.district) {
+    subdistricts.value = await getSubdistricts(filters.province, filters.district);
+  } else {
+    subdistricts.value = [];
+  }
+};
+
+// Computed options for USelectMenu (needs {label, value} format)
+const provinceOptions = computed(() => {
+  return [
+    { label: 'ทุกจังหวัด', value: '' },
+    ...provinces.value.map(p => ({ label: p, value: p }))
+  ];
+});
+
+const districtOptions = computed(() => {
+  return [
+    { label: 'ทุกอำเภอ/เขต', value: '' },
+    ...districts.value.map(d => ({ label: d, value: d }))
+  ];
+});
+
+const subdistrictOptions = computed(() => {
+  return [
+    { label: 'ทุกตำบล/แขวง', value: '' },
+    ...subdistricts.value.map(s => ({ label: s, value: s }))
+  ];
+});
 
 const propertyTypes = [
   { value: '', label: 'ทั้งหมด', icon: '🏘️' },
@@ -365,6 +471,12 @@ const filteredListings = computed(() => {
 
     // Province filter
     if (filters.province && listing.province !== filters.province) return false;
+
+    // District filter
+    if (filters.district && listing.district !== filters.district) return false;
+
+    // Subdistrict filter
+    if (filters.subdistrict && listing.subdistrict !== filters.subdistrict) return false;
 
     // Condition filter
     if (filters.condition && listing.property_condition !== filters.condition) return false;
@@ -458,9 +570,12 @@ const resetFilters = () => {
   filters.type = '';
   filters.priceRange = '';
   filters.province = '';
-  filters.province = '';
+  filters.district = '';
+  filters.subdistrict = '';
   filters.condition = '';
   filters.isPinned = false;
+  districts.value = [];
+  subdistricts.value = [];
   currentPage.value = 1;
 };
 

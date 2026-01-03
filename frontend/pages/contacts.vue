@@ -156,16 +156,26 @@
 
             <!-- Google reCAPTCHA v2 Checkbox -->
             <UFormGroup label="ตรวจสอบว่าคุณไม่ใช่หุ่นยนต์" name="recaptcha" required>
-              <div class="flex justify-center">
-                <div 
-                  ref="recaptchaContainer" 
-                  class="g-recaptcha" 
-                  :data-sitekey="recaptchaSiteKey"
-                  data-callback="onRecaptchaVerify"
-                  data-expired-callback="onRecaptchaExpired"
-                ></div>
+              <div class="flex flex-col items-center gap-2">
+                <!-- reCAPTCHA Widget Container -->
+                <div ref="recaptchaContainer" class="recaptcha-wrapper"></div>
+                
+                <!-- Loading State -->
+                <div v-if="recaptchaLoading" class="flex items-center gap-2 text-gray-500 text-sm">
+                  <UIcon name="i-heroicons-arrow-path" class="animate-spin" />
+                  <span>กำลังโหลด reCAPTCHA...</span>
+                </div>
+                
+                <!-- Error State -->
+                <div v-if="recaptchaLoadError" class="text-center">
+                  <p class="text-red-500 text-sm mb-2">ไม่สามารถโหลด reCAPTCHA ได้</p>
+                  <UButton size="xs" color="gray" @click="retryLoadRecaptcha">
+                    <UIcon name="i-heroicons-arrow-path" class="mr-1" />
+                    ลองใหม่
+                  </UButton>
+                </div>
               </div>
-              <p v-if="recaptchaError" class="text-red-500 text-xs mt-1 text-center">{{ recaptchaError }}</p>
+              <p v-if="recaptchaError" class="text-red-500 text-xs mt-2 text-center">{{ recaptchaError }}</p>
             </UFormGroup>
 
             <div v-if="success" class="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg text-sm">
@@ -178,7 +188,7 @@
               {{ error }}
             </div>
 
-            <UButton type="submit" block size="lg" color="green" :loading="loading" :disabled="!recaptchaToken">
+            <UButton type="submit" block size="lg" color="green" :loading="loading" :disabled="!recaptchaToken || recaptchaLoading">
               <UIcon name="i-heroicons-paper-airplane" class="mr-2" />
               ส่งข้อความ
             </UButton>
@@ -202,7 +212,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue';
 import axios from 'axios';
 import { useSettingsStore } from '~/stores/settings';
 
@@ -218,49 +228,134 @@ const recaptchaContainer = ref(null);
 const honeypot = ref('');
 const recaptchaToken = ref('');
 const recaptchaError = ref('');
+const recaptchaLoading = ref(true);
+const recaptchaLoadError = ref(false);
+let recaptchaWidgetId = null;
 
 // Define global callbacks for reCAPTCHA
-if (process.client) {
-  window.onRecaptchaVerify = (token) => {
-    recaptchaToken.value = token;
-    recaptchaError.value = '';
-  };
-  
-  window.onRecaptchaExpired = () => {
-    recaptchaToken.value = '';
-    recaptchaError.value = 'รหัส reCAPTCHA หมดอายุ กรุณาลองใหม่';
-  };
-}
+const setupRecaptchaCallbacks = () => {
+  if (typeof window !== 'undefined') {
+    window.onRecaptchaVerify = (token) => {
+      recaptchaToken.value = token;
+      recaptchaError.value = '';
+    };
+    
+    window.onRecaptchaExpired = () => {
+      recaptchaToken.value = '';
+      recaptchaError.value = 'reCAPTCHA หมดอายุ กรุณาคลิกยืนยันใหม่';
+    };
+    
+    window.onRecaptchaError = () => {
+      recaptchaToken.value = '';
+      recaptchaError.value = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
+    };
+  }
+};
 
 // Load reCAPTCHA script
 const loadRecaptchaScript = () => {
   return new Promise((resolve, reject) => {
-    if (document.querySelector('script[src*="recaptcha"]')) {
+    // Check if already loaded
+    if (window.grecaptcha && window.grecaptcha.render) {
       resolve();
       return;
     }
     
+    // Check if script tag exists
+    const existingScript = document.querySelector('script[src*="recaptcha"]');
+    if (existingScript) {
+      // Wait for it to load
+      const checkInterval = setInterval(() => {
+        if (window.grecaptcha && window.grecaptcha.render) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 100);
+      
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        reject(new Error('reCAPTCHA load timeout'));
+      }, 10000);
+      return;
+    }
+    
+    // Create script tag with explicit render
     const script = document.createElement('script');
-    script.src = 'https://www.google.com/recaptcha/api.js';
+    script.src = 'https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit';
     script.async = true;
     script.defer = true;
-    script.onload = resolve;
-    script.onerror = reject;
+    
+    window.onRecaptchaLoad = () => {
+      resolve();
+    };
+    
+    script.onerror = () => {
+      reject(new Error('Failed to load reCAPTCHA script'));
+    };
+    
     document.head.appendChild(script);
   });
+};
+
+// Render reCAPTCHA widget
+const renderRecaptcha = async () => {
+  if (!recaptchaContainer.value || !window.grecaptcha || !window.grecaptcha.render) {
+    return;
+  }
+  
+  try {
+    // Clear any existing widget
+    recaptchaContainer.value.innerHTML = '';
+    
+    recaptchaWidgetId = window.grecaptcha.render(recaptchaContainer.value, {
+      sitekey: recaptchaSiteKey,
+      callback: 'onRecaptchaVerify',
+      'expired-callback': 'onRecaptchaExpired',
+      'error-callback': 'onRecaptchaError'
+    });
+    
+    recaptchaLoading.value = false;
+    recaptchaLoadError.value = false;
+  } catch (e) {
+    console.error('Error rendering reCAPTCHA:', e);
+    recaptchaLoadError.value = true;
+    recaptchaLoading.value = false;
+  }
+};
+
+// Initialize reCAPTCHA
+const initRecaptcha = async () => {
+  if (!recaptchaSiteKey) {
+    console.warn('reCAPTCHA site key not configured');
+    recaptchaLoading.value = false;
+    return;
+  }
+  
+  recaptchaLoading.value = true;
+  recaptchaLoadError.value = false;
+  
+  try {
+    setupRecaptchaCallbacks();
+    await loadRecaptchaScript();
+    await nextTick();
+    await renderRecaptcha();
+  } catch (e) {
+    console.error('Failed to initialize reCAPTCHA:', e);
+    recaptchaLoadError.value = true;
+    recaptchaLoading.value = false;
+  }
+};
+
+// Retry loading reCAPTCHA
+const retryLoadRecaptcha = () => {
+  initRecaptcha();
 };
 
 onMounted(async () => {
   await settingsStore.fetchSettings();
   
-  // Load reCAPTCHA
-  if (recaptchaSiteKey) {
-    try {
-      await loadRecaptchaScript();
-    } catch (e) {
-      console.error('Failed to load reCAPTCHA:', e);
-    }
-  }
+  // Initialize reCAPTCHA
+  await initRecaptcha();
   
   // Trigger fade animation
   setTimeout(() => {
@@ -270,9 +365,11 @@ onMounted(async () => {
 
 onUnmounted(() => {
   // Cleanup global callbacks
-  if (process.client) {
+  if (typeof window !== 'undefined') {
     delete window.onRecaptchaVerify;
     delete window.onRecaptchaExpired;
+    delete window.onRecaptchaError;
+    delete window.onRecaptchaLoad;
   }
 });
 
@@ -298,9 +395,13 @@ const form = reactive({
 });
 
 const resetRecaptcha = () => {
-  if (process.client && window.grecaptcha) {
-    window.grecaptcha.reset();
-    recaptchaToken.value = '';
+  if (typeof window !== 'undefined' && window.grecaptcha && recaptchaWidgetId !== null) {
+    try {
+      window.grecaptcha.reset(recaptchaWidgetId);
+      recaptchaToken.value = '';
+    } catch (e) {
+      console.error('Error resetting reCAPTCHA:', e);
+    }
   }
 };
 
@@ -352,3 +453,11 @@ const handleSubmit = async () => {
   }
 };
 </script>
+
+<style scoped>
+.recaptcha-wrapper {
+  min-height: 78px;
+  display: flex;
+  justify-content: center;
+}
+</style>

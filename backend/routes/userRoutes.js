@@ -16,4 +16,8 @@ router.put('/:id/block', authMiddleware, roleMiddleware(['admin', 'superadmin'])
 // Update user role - Superadmin only
 router.put('/:id/role', authMiddleware, roleMiddleware(['superadmin']), userController.updateUserRole);
 
+// Delete user - Superadmin only
+router.delete('/:id', authMiddleware, roleMiddleware(['superadmin']), userController.deleteUser);
+
 module.exports = router;
+

@@ -330,8 +330,8 @@
     </section>
     <!-- 🎨 Premium Ads Gallery Section -->
     <section 
-      v-if="ads.banner_top || ads.bento_1 || ads.bento_2" 
-      class="relative py-32 overflow-hidden"
+      v-if="hasAnyAd" 
+      class="relative py-24 md:py-32 overflow-hidden"
       ref="adSectionRef"
       v-intersection-observer="onAdsVisible"
     >
@@ -347,7 +347,7 @@
 
       <div class="relative z-10 max-w-7xl mx-auto px-4">
         <!-- Section Header -->
-        <div class="text-center mb-14">
+        <div class="text-center mb-12">
           <div 
             class="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 backdrop-blur-xl border border-amber-500/20 px-5 py-2.5 rounded-full mb-5 opacity-0 -translate-y-4 transition-all duration-700"
             :class="{ 'opacity-100 translate-y-0': adsVisible }"
@@ -370,17 +370,18 @@
           </p>
         </div>
 
-        <!-- Premium Masonry Bento Grid -->
+        <!-- Ads Grid with Clear Dimensions -->
         <div 
-          class="grid grid-cols-4 md:grid-cols-12 auto-rows-[140px] gap-4 opacity-0 translate-y-8 transition-all duration-1000 delay-300"
+          class="space-y-4 opacity-0 translate-y-8 transition-all duration-1000 delay-300"
           :class="{ 'opacity-100 translate-y-0': adsVisible }"
         >
-          <!-- Banner Top - Full Width -->
+          
+          <!-- Banner Top: Full Width (1200x280px recommended) -->
           <a 
             v-if="ads.banner_top"
             :href="ads.banner_top.link" 
             target="_blank" 
-            class="col-span-4 md:col-span-12 row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer"
+            class="block relative w-full h-48 md:h-64 lg:h-72 rounded-2xl overflow-hidden group cursor-pointer"
           >
             <img 
               :src="`${apiUrl}/uploads/${ads.banner_top.image}`" 
@@ -399,89 +400,116 @@
             </div>
             <!-- Hover Glow -->
             <div class="absolute inset-0 border-2 border-amber-400/0 rounded-2xl transition-all duration-500 group-hover:border-amber-400/50 group-hover:shadow-[0_0_40px_rgba(251,191,36,0.15)]"></div>
-          </a>
-
-          <!-- Bento 1 - Large Left -->
-          <a 
-            v-if="ads.bento_1"
-            :href="ads.bento_1.link" 
-            target="_blank" 
-            class="col-span-4 md:col-span-7 row-span-3 relative rounded-2xl overflow-hidden group cursor-pointer"
-          >
-            <img 
-              :src="`${apiUrl}/uploads/${ads.bento_1.image}`" 
-              class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-            />
-            <!-- Glass Overlay -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-            <!-- Decorative Corner -->
-            <div class="absolute top-4 right-4 w-20 h-20 border-t-2 border-r-2 border-white/20 rounded-tr-xl"></div>
-            <!-- Content -->
-            <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-              <span class="inline-block px-3 py-1 mb-3 bg-emerald-500 text-white text-xs font-bold rounded-full shadow-lg shadow-emerald-500/30">
-                Premium Partner
-              </span>
-              <h3 class="text-white text-xl md:text-2xl font-bold mb-2 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                โปรโมชั่นพิเศษสำหรับคุณ
-              </h3>
-              <p class="text-white/60 text-sm transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
-                คลิกเพื่อดูรายละเอียด →
-              </p>
+            <!-- Size Label (for admin reference) -->
+            <div class="absolute top-3 right-3 px-2 py-1 bg-black/50 backdrop-blur text-white/60 text-xs rounded-full">
+              1200 × 280 px
             </div>
-            <!-- Hover Border -->
-            <div class="absolute inset-0 border-2 border-emerald-400/0 rounded-2xl transition-all duration-500 group-hover:border-emerald-400/40"></div>
           </a>
 
-          <!-- Bento 2 - Top Right -->
-          <a 
-            v-if="ads.bento_2"
-            :href="ads.bento_2.link" 
-            target="_blank" 
-            class="col-span-2 md:col-span-5 row-span-2 relative rounded-2xl overflow-hidden group cursor-pointer"
-          >
-            <img 
-              :src="`${apiUrl}/uploads/${ads.bento_2.image}`" 
-              class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-            <div class="absolute bottom-4 left-4 right-4">
-              <div class="flex items-center gap-2 text-white text-sm font-medium">
-                <span class="w-8 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-400"></span>
-                <span>ข้อเสนอพิเศษ</span>
+          <!-- Bento Grid Row -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            
+            <!-- Bento 1: Large Left (700x400px recommended) -->
+            <a 
+              v-if="ads.bento_1"
+              :href="ads.bento_1.link" 
+              target="_blank" 
+              class="md:col-span-7 relative h-64 md:h-80 rounded-2xl overflow-hidden group cursor-pointer"
+            >
+              <img 
+                :src="`${apiUrl}/uploads/${ads.bento_1.image}`" 
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+              <!-- Decorative Corner -->
+              <div class="absolute top-4 right-4 w-20 h-20 border-t-2 border-r-2 border-white/20 rounded-tr-xl"></div>
+              <!-- Content -->
+              <div class="absolute bottom-0 left-0 right-0 p-6">
+                <span class="inline-block px-3 py-1 mb-3 bg-emerald-500 text-white text-xs font-bold rounded-full shadow-lg shadow-emerald-500/30">
+                  Premium Partner
+                </span>
+                <h3 class="text-white text-xl font-bold mb-2 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                  โปรโมชั่นพิเศษสำหรับคุณ
+                </h3>
+              </div>
+              <div class="absolute inset-0 border-2 border-emerald-400/0 rounded-2xl transition-all duration-500 group-hover:border-emerald-400/40"></div>
+              <!-- Size Label -->
+              <div class="absolute top-3 right-3 px-2 py-1 bg-black/50 backdrop-blur text-white/60 text-xs rounded-full">
+                700 × 400 px
+              </div>
+            </a>
+
+            <!-- Right Column: 2 stacked ads -->
+            <div class="md:col-span-5 flex flex-col gap-4">
+              
+              <!-- Bento 2: Top Right (500x190px recommended) -->
+              <a 
+                v-if="ads.bento_2"
+                :href="ads.bento_2.link" 
+                target="_blank" 
+                class="relative h-36 md:h-[calc(50%-0.5rem)] min-h-[150px] rounded-2xl overflow-hidden group cursor-pointer"
+              >
+                <img 
+                  :src="`${apiUrl}/uploads/${ads.bento_2.image}`" 
+                  class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                <div class="absolute bottom-4 left-4 right-4">
+                  <div class="flex items-center gap-2 text-white text-sm font-medium">
+                    <span class="w-8 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-400"></span>
+                    <span>ข้อเสนอพิเศษ</span>
+                  </div>
+                </div>
+                <div class="absolute inset-0 border border-white/10 rounded-2xl group-hover:border-cyan-400/40 transition-colors duration-500"></div>
+                <!-- Size Label -->
+                <div class="absolute top-3 right-3 px-2 py-1 bg-black/50 backdrop-blur text-white/60 text-xs rounded-full">
+                  500 × 190 px
+                </div>
+              </a>
+
+              <!-- Bottom right: 2 smaller ads side by side -->
+              <div class="grid grid-cols-2 gap-4 flex-1">
+                
+                <!-- Bento 3: Bottom Left Small (240x150px recommended) -->
+                <a 
+                  v-if="ads.bento_3"
+                  :href="ads.bento_3.link" 
+                  target="_blank" 
+                  class="relative h-32 md:h-full min-h-[120px] rounded-xl overflow-hidden group cursor-pointer"
+                >
+                  <img 
+                    :src="`${apiUrl}/uploads/${ads.bento_3.image}`" 
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                  />
+                  <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
+                  <div class="absolute inset-0 border border-white/10 rounded-xl group-hover:border-rose-400/40 transition-colors duration-500"></div>
+                  <!-- Size Label -->
+                  <div class="absolute top-2 right-2 px-1.5 py-0.5 bg-black/50 backdrop-blur text-white/60 text-[10px] rounded-full">
+                    240 × 150 px
+                  </div>
+                </a>
+
+                <!-- Bento 4: Bottom Right Small (240x150px recommended) -->
+                <a 
+                  v-if="ads.bento_4"
+                  :href="ads.bento_4.link" 
+                  target="_blank" 
+                  class="relative h-32 md:h-full min-h-[120px] rounded-xl overflow-hidden group cursor-pointer"
+                >
+                  <img 
+                    :src="`${apiUrl}/uploads/${ads.bento_4.image}`" 
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                  />
+                  <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
+                  <div class="absolute inset-0 border border-white/10 rounded-xl group-hover:border-violet-400/40 transition-colors duration-500"></div>
+                  <!-- Size Label -->
+                  <div class="absolute top-2 right-2 px-1.5 py-0.5 bg-black/50 backdrop-blur text-white/60 text-[10px] rounded-full">
+                    240 × 150 px
+                  </div>
+                </a>
               </div>
             </div>
-            <div class="absolute inset-0 border border-white/10 rounded-2xl group-hover:border-cyan-400/40 transition-colors duration-500"></div>
-          </a>
-
-          <!-- Bento 3 - Middle Right -->
-          <a 
-            v-if="ads.bento_3"
-            :href="ads.bento_3.link" 
-            target="_blank" 
-            class="col-span-2 md:col-span-2 row-span-1 relative rounded-xl overflow-hidden group cursor-pointer"
-          >
-            <img 
-              :src="`${apiUrl}/uploads/${ads.bento_3.image}`" 
-              class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-            />
-            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
-            <div class="absolute inset-0 border border-white/10 rounded-xl group-hover:border-rose-400/40 transition-colors duration-500"></div>
-          </a>
-
-          <!-- Bento 4 - Bottom Right -->
-          <a 
-            v-if="ads.bento_4"
-            :href="ads.bento_4.link" 
-            target="_blank" 
-            class="col-span-2 md:col-span-3 row-span-1 relative rounded-xl overflow-hidden group cursor-pointer"
-          >
-            <img 
-              :src="`${apiUrl}/uploads/${ads.bento_4.image}`" 
-              class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-            />
-            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
-            <div class="absolute inset-0 border border-white/10 rounded-xl group-hover:border-violet-400/40 transition-colors duration-500"></div>
-          </a>
+          </div>
         </div>
 
         <!-- CTA Below Grid -->
@@ -720,6 +748,11 @@ const paginatedHotSaleListings = computed(() => {
 
 const totalHotSalePages = computed(() => {
   return Math.ceil(pinnedListings.value.length / hotSaleItemsPerPage);
+});
+
+// Check if any ad exists
+const hasAnyAd = computed(() => {
+  return ads.value.banner_top || ads.value.bento_1 || ads.value.bento_2 || ads.value.bento_3 || ads.value.bento_4;
 });
 
 const nextHotSalePage = () => {
@@ -992,11 +1025,11 @@ onMounted(async () => {
       const adsRes = await axios.get(`${apiUrl}/api/ads/active`);
       const adList = adsRes.data;
       ads.value = {
-        banner_top: adList.find(a => a.position === 'banner-top'),
-        bento_1: adList.find(a => a.position === 'bento-1'),
-        bento_2: adList.find(a => a.position === 'bento-2'),
-        bento_3: adList.find(a => a.position === 'bento-3'),
-        bento_4: adList.find(a => a.position === 'bento-4')
+        banner_top: adList.find(a => a.position === 'banner_top' || a.position === 'banner-top'),
+        bento_1: adList.find(a => a.position === 'bento_1' || a.position === 'bento-1'),
+        bento_2: adList.find(a => a.position === 'bento_2' || a.position === 'bento-2'),
+        bento_3: adList.find(a => a.position === 'bento_3' || a.position === 'bento-3'),
+        bento_4: adList.find(a => a.position === 'bento_4' || a.position === 'bento-4')
       };
     } catch (e) {
       console.error('Error fetching ads:', e);

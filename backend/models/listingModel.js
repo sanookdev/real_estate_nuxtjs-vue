@@ -32,7 +32,7 @@ class ListingModel {
     }
 
     static async findById(id) {
-        const [rows] = await db.execute('SELECT l.*, u.username, u.email FROM listings l JOIN users u ON l.user_id = u.id WHERE l.id = ?', [id]);
+        const [rows] = await db.execute('SELECT l.*, u.username, u.email, u.phone FROM listings l JOIN users u ON l.user_id = u.id WHERE l.id = ?', [id]);
         return rows[0];
     }
 

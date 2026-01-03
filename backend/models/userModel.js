@@ -11,27 +11,27 @@ class UserModel {
         return rows[0];
     }
 
-    static async findByVerificationToken(token) {
-        const [rows] = await db.execute('SELECT * FROM users WHERE verification_token = ?', [token]);
-        return rows[0];
-    }
-
     static async findById(id) {
         const [rows] = await db.execute('SELECT * FROM users WHERE id = ?', [id]);
         return rows[0];
     }
 
     static async create(userData) {
-        const { username, email, password_hash, role = 'user', status = 'pending', verification_token = null } = userData;
+        const {
+            username,
+            email,
+            phone = null,
+            password_hash,
+            role = 'user',
+            status = 'pending',
+            email_verified_at = null
+        } = userData;
+
         const [result] = await db.execute(
-            'INSERT INTO users (username, email, password_hash, role, status, verification_token) VALUES (?, ?, ?, ?, ?, ?)',
-            [username, email, password_hash, role, status, verification_token]
+            'INSERT INTO users (username, email, phone, password_hash, role, status, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [username, email, phone, password_hash, role, status, email_verified_at]
         );
         return result.insertId;
-    }
-
-    static async verifyEmail(id) {
-        await db.execute('UPDATE users SET email_verified_at = NOW(), verification_token = NULL WHERE id = ?', [id]);
     }
 
     static async updateStatus(id, status) {
@@ -60,8 +60,12 @@ class UserModel {
     }
 
     static async getAllUsers() {
-        const [rows] = await db.execute('SELECT id, username, email, role, status, created_at FROM users');
+        const [rows] = await db.execute('SELECT id, username, email, phone, role, status, email_verified_at, created_at FROM users');
         return rows;
+    }
+
+    static async deleteUser(id) {
+        await db.execute('DELETE FROM users WHERE id = ?', [id]);
     }
 }
 

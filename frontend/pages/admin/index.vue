@@ -223,19 +223,46 @@
              </template>
 
              <template #actions-data="{ row }">
-               <div class="flex gap-2" v-if="row.role !== 'superadmin'">
-                  <UTooltip text="อนุมัติ / ปลดบล็อก">
-                    <UButton icon="i-heroicons-check-circle" size="xs" color="green" variant="ghost" @click="approveUser(row.id)" v-if="row.status !== 'approved' && row.status !== 'active'" />
-                  </UTooltip>
+               <div class="flex flex-wrap gap-1" v-if="row.role !== 'superadmin'">
+                  <UButton 
+                    v-if="row.status !== 'approved' && row.status !== 'active'" 
+                    size="xs" 
+                    color="green" 
+                    variant="soft"
+                    icon="i-heroicons-check-circle" 
+                    @click="approveUser(row.id)"
+                  >
+                    อนุมัติ
+                  </UButton>
                   
-                  <UTooltip text="ระงับการใช้งาน">
-                    <UButton icon="i-heroicons-no-symbol" size="xs" color="red" variant="ghost" @click="blockUser(row.id)" v-if="row.status !== 'blocked'" />
-                  </UTooltip>
+                  <UButton 
+                    v-if="row.status !== 'blocked'" 
+                    size="xs" 
+                    color="orange" 
+                    variant="soft"
+                    icon="i-heroicons-no-symbol" 
+                    @click="blockUser(row.id)"
+                  >
+                    ระงับ
+                  </UButton>
                   
                   <UDropdown :items="[[{ label: 'เปลี่ยนเป็น Admin', click: () => changeRole(row.id, 'admin') }, { label: 'เปลี่ยนเป็น User', click: () => changeRole(row.id, 'user') }]]">
-                    <UButton icon="i-heroicons-user-circle" size="xs" color="gray" variant="ghost" />
+                    <UButton size="xs" color="blue" variant="soft" icon="i-heroicons-user-circle">
+                      สิทธิ์
+                    </UButton>
                   </UDropdown>
+                  
+                  <UButton 
+                    size="xs" 
+                    color="red" 
+                    variant="soft"
+                    icon="i-heroicons-trash" 
+                    @click="deleteUser(row.id)"
+                  >
+                    ลบ
+                  </UButton>
                </div>
+               <span v-else class="text-gray-400 text-xs">-</span>
              </template>
           </UTable>
         </UCard>
@@ -623,6 +650,21 @@ const changeRole = async (id, role) => {
             await fetchUsers();
         } catch (error) {
             $alertify.error('เกิดข้อผิดพลาด: ' + error.response?.data?.message);
+        }
+    }, function(){});
+};
+
+const deleteUser = async (id) => {
+    const { $alertify } = useNuxtApp();
+    $alertify.confirm('⚠️ ยืนยันการลบ', 'ต้องการลบผู้ใช้งานนี้? การกระทำนี้ไม่สามารถย้อนกลับได้', async function() {
+        try {
+            await axios.delete(`${apiUrl}/api/users/${id}`, {
+                headers: { Authorization: `Bearer ${authStore.token}` }
+            });
+            $alertify.success('ลบผู้ใช้งานเรียบร้อย');
+            await fetchUsers();
+        } catch (error) {
+            $alertify.error('เกิดข้อผิดพลาด: ' + (error.response?.data?.message || error.message));
         }
     }, function(){});
 };
