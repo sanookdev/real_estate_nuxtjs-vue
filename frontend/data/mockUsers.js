@@ -26,9 +26,9 @@ export const mockUsers = [
     },
     {
         id: 99,
-        username: 'Admin Demo',
+        username: 'superadmin',
         email: 'admin@example.com',
-        role: 'admin',
+        role: 'superadmin',
         status: 'active',
         created_at: '2024-01-01T00:00:00Z'
     }
@@ -40,10 +40,10 @@ export const demoCredentials = {
     password: 'demo123'
 }
 
-// Helper to authenticate demo user
+// Helper to authenticate demo user (any email from mockUsers, any password works in demo mode)
 export const authenticateDemoUser = (email, password) => {
-    if (email === demoCredentials.email && password === demoCredentials.password) {
-        const user = mockUsers.find(u => u.email === email)
+    const user = mockUsers.find(u => u.email === email || u.username === email)
+    if (user) {
         return {
             success: true,
             user: user,
@@ -52,7 +52,7 @@ export const authenticateDemoUser = (email, password) => {
     }
     return {
         success: false,
-        message: 'Invalid credentials. Use demo@example.com / demo123'
+        message: 'ไม่พบ email นี้ในระบบ Demo | Demo emails: demo@example.com, admin@example.com'
     }
 }
 

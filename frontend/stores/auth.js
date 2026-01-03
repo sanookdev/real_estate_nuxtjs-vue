@@ -78,9 +78,20 @@ export const useAuthStore = defineStore('auth', {
             if (process.client) {
                 const token = localStorage.getItem('token');
                 const user = localStorage.getItem('user');
-                if (token && user) {
-                    this.token = token;
-                    this.user = JSON.parse(user);
+                if (token && user && user !== 'undefined') {
+                    try {
+                        this.token = token;
+                        this.user = JSON.parse(user);
+                    } catch (e) {
+                        // Invalid JSON in localStorage, clear it
+                        console.error('Invalid user data in localStorage, clearing...');
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                    }
+                } else {
+                    // Clear invalid data
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
                 }
             }
         }

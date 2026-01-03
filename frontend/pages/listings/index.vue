@@ -86,12 +86,38 @@
               </select>
             </div>
 
-            <!-- Location -->
+            <!-- Location - Province -->
             <div class="mb-6">
               <label class="block text-sm font-medium text-gray-700 mb-2">จังหวัด</label>
               <select v-model="filters.province" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                 <option value="">ทุกจังหวัด</option>
                 <option v-for="prov in provinces" :key="prov" :value="prov">{{ prov }}</option>
+              </select>
+            </div>
+
+            <!-- Location - District -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">อำเภอ/เขต</label>
+              <select 
+                v-model="filters.district" 
+                :disabled="!filters.province"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                <option value="">ทุกอำเภอ</option>
+                <option v-for="dist in districts" :key="dist" :value="dist">{{ dist }}</option>
+              </select>
+            </div>
+
+            <!-- Location - Subdistrict -->
+            <div class="mb-6">
+              <label class="block text-sm font-medium text-gray-700 mb-2">ตำบล/แขวง</label>
+              <select 
+                v-model="filters.subdistrict" 
+                :disabled="!filters.district"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                <option value="">ทุกตำบล</option>
+                <option v-for="sub in subdistricts" :key="sub" :value="sub">{{ sub }}</option>
               </select>
             </div>
 
@@ -293,7 +319,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
-import { getProvinces } from '~/utils/thailandAddresses';
+import { getProvinces, getDistricts, getSubdistricts } from '~/utils/thailandAddresses';
 import { useAuthStore } from '~/stores/auth';
 import { mockListings } from '~/data/mockListings';
 
@@ -341,12 +367,15 @@ const filters = reactive({
   type: '',
   priceRange: '',
   province: '',
-  province: '',
+  district: '',
+  subdistrict: '',
   condition: '',
   isPinned: false
 });
 
 const provinces = ref([]);
+const districts = ref([]);
+const subdistricts = ref([]);
 
 const propertyTypes = [
   { value: '', label: 'ทั้งหมด', icon: '🏘️' },
@@ -379,6 +408,12 @@ const filteredListings = computed(() => {
 
     // Province filter
     if (filters.province && listing.province !== filters.province) return false;
+
+    // District filter
+    if (filters.district && listing.district !== filters.district) return false;
+
+    // Subdistrict filter
+    if (filters.subdistrict && listing.subdistrict !== filters.subdistrict) return false;
 
     // Condition filter
     if (filters.condition && listing.property_condition !== filters.condition) return false;
@@ -472,11 +507,38 @@ const resetFilters = () => {
   filters.type = '';
   filters.priceRange = '';
   filters.province = '';
-  filters.province = '';
+  filters.district = '';
+  filters.subdistrict = '';
   filters.condition = '';
   filters.isPinned = false;
+  districts.value = [];
+  subdistricts.value = [];
   currentPage.value = 1;
 };
+
+// Watch province changes to load districts
+watch(() => filters.province, async (newProvince) => {
+  filters.district = '';
+  filters.subdistrict = '';
+  subdistricts.value = [];
+  
+  if (newProvince) {
+    districts.value = await getDistricts(newProvince);
+  } else {
+    districts.value = [];
+  }
+});
+
+// Watch district changes to load subdistricts
+watch(() => filters.district, async (newDistrict) => {
+  filters.subdistrict = '';
+  
+  if (newDistrict && filters.province) {
+    subdistricts.value = await getSubdistricts(filters.province, newDistrict);
+  } else {
+    subdistricts.value = [];
+  }
+});
 
 onMounted(async () => {
   // Load provinces (client-side only)
