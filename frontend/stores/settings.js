@@ -13,7 +13,14 @@ export const useSettingsStore = defineStore('settings', {
             this.loading = true;
             try {
                 const config = useRuntimeConfig();
-                const apiUrl = config.public.apiUrl;
+                let apiUrl = config.public.apiUrl;
+
+                // If running on server (SSR) and inside Docker, we might need to use the internal container name
+                // You can add NUXT_API_URL_INTERNAL to .env or docker-compose
+                if (import.meta.server && config.public.apiUrlInternal) {
+                     apiUrl = config.public.apiUrlInternal;
+                }
+
                 const response = await axios.get(`${apiUrl}/api/settings/public`);
                 this.settings = response.data;
                 console.log('setting', this.settings)

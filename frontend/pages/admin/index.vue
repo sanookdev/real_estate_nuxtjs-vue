@@ -586,6 +586,7 @@ const togglePin = async (id) => {
 const fetchUsers = async () => {
   loadingUsers.value = true;
   try {
+    console.log('token', authStore.token);
     const response = await axios.get(`${apiUrl}/api/users`, {
       headers: { Authorization: `Bearer ${authStore.token}` }
     });

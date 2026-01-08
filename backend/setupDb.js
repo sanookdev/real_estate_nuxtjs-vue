@@ -39,11 +39,11 @@ const TABLES = {
             id INT AUTO_INCREMENT PRIMARY KEY,
             username VARCHAR(255) NOT NULL,
             email VARCHAR(255) NOT NULL UNIQUE,
+            phone VARCHAR(50) DEFAULT NULL,
             password_hash VARCHAR(255) NOT NULL,
             role ENUM('user', 'admin', 'superadmin') DEFAULT 'user',
             status ENUM('pending', 'approved', 'blocked') DEFAULT 'pending',
             email_verified_at DATETIME DEFAULT NULL,
-            verification_token VARCHAR(255) DEFAULT NULL,
             reset_password_token VARCHAR(255) DEFAULT NULL,
             reset_password_expires DATETIME DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -51,8 +51,25 @@ const TABLES = {
             INDEX idx_email (email),
             INDEX idx_role (role),
             INDEX idx_status (status),
-            INDEX idx_verification_token (verification_token),
             INDEX idx_reset_token (reset_password_token)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `,
+
+  pending_verifications: `
+        CREATE TABLE IF NOT EXISTS pending_verifications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            email VARCHAR(255) NOT NULL,
+            otp_code VARCHAR(10) NOT NULL,
+            otp_expires DATETIME NOT NULL,
+            otp_attempts INT DEFAULT 0,
+            lockout_until DATETIME DEFAULT NULL,
+            verified_at DATETIME DEFAULT NULL,
+            registration_token VARCHAR(255) DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX idx_email (email),
+            INDEX idx_registration_token (registration_token),
+            INDEX idx_verified_at (verified_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `,
 
