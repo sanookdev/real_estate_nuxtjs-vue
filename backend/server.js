@@ -43,6 +43,12 @@ app.use('/api/ads', adRoutes); // Added adRoutes usage
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// Only start server if not being imported (for Vercel serverless)
+if (require.main === module) {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+// Export for Vercel serverless
+module.exports = app;
