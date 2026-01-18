@@ -1,4 +1,3 @@
-
 const db = require('../config/db');
 
 class FavoriteModel {
@@ -7,7 +6,8 @@ class FavoriteModel {
             await db.execute('INSERT INTO favorites (user_id, listing_id) VALUES (?, ?)', [userId, listingId]);
             return true;
         } catch (error) {
-            if (error.code === 'ER_DUP_ENTRY') return false; // Already exists
+            // PostgreSQL unique violation error code is '23505'
+            if (error.code === '23505') return false; // Already exists
             throw error;
         }
     }
@@ -30,7 +30,7 @@ class FavoriteModel {
             ORDER BY f.created_at DESC
         `, [userId]);
 
-        // Parse images if they are strings
+        // Parse images if they are strings (JSONB in PostgreSQL returns objects)
         return rows.map(row => ({
             ...row,
             images: typeof row.images === 'string' ? JSON.parse(row.images) : row.images

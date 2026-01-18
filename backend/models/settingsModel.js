@@ -7,13 +7,14 @@ class SettingsModel {
     }
 
     static async set(key, value) {
-        // Upsert equivalent
-        const [existing] = await db.execute('SELECT id FROM settings WHERE setting_key = ?', [key]);
-        if (existing.length > 0) {
-            await db.execute('UPDATE settings SET setting_value = ? WHERE setting_key = ?', [value, key]);
-        } else {
-            await db.execute('INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)', [key, value]);
-        }
+        // PostgreSQL UPSERT using ON CONFLICT
+        await db.execute(
+            `INSERT INTO settings (setting_key, setting_value) 
+             VALUES (?, ?) 
+             ON CONFLICT (setting_key) 
+             DO UPDATE SET setting_value = EXCLUDED.setting_value`,
+            [key, value]
+        );
     }
 
     static async getAll() {

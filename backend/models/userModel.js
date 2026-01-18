@@ -27,11 +27,11 @@ class UserModel {
             email_verified_at = null
         } = userData;
 
-        const [result] = await db.execute(
-            'INSERT INTO users (username, email, phone, password_hash, role, status, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        const [rows] = await db.execute(
+            'INSERT INTO users (username, email, phone, password_hash, role, status, email_verified_at) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id',
             [username, email, phone, password_hash, role, status, email_verified_at]
         );
-        return result.insertId;
+        return rows[0].id;
     }
 
     static async updateStatus(id, status) {

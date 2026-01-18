@@ -35,12 +35,12 @@ class PendingVerificationModel {
         // Delete existing pending verifications for this email
         await db.execute('DELETE FROM pending_verifications WHERE email = ?', [email]);
 
-        // Create new
-        const [result] = await db.execute(
-            'INSERT INTO pending_verifications (email, otp_code, otp_expires) VALUES (?, ?, ?)',
+        // Create new and return the id
+        const [rows] = await db.execute(
+            'INSERT INTO pending_verifications (email, otp_code, otp_expires) VALUES (?, ?, ?) RETURNING id',
             [email, otpCode, otpExpires]
         );
-        return result.insertId;
+        return rows[0].id;
     }
 
     // Increment OTP attempts
@@ -80,7 +80,7 @@ class PendingVerificationModel {
     // Clean up expired unverified records (older than 1 hour)
     static async cleanupExpired() {
         await db.execute(
-            'DELETE FROM pending_verifications WHERE verified_at IS NULL AND created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)'
+            "DELETE FROM pending_verifications WHERE verified_at IS NULL AND created_at < NOW() - INTERVAL '1 hour'"
         );
     }
 }

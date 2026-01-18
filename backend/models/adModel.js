@@ -3,11 +3,11 @@ const db = require('../config/db');
 class AdModel {
     static async create(data) {
         const { image, link, position, active } = data;
-        const [result] = await db.execute(
-            'INSERT INTO ads (image, link, position, active) VALUES (?, ?, ?, ?)',
-            [image, link, position, active || true]
+        const [rows] = await db.execute(
+            'INSERT INTO ads (image, link, position, active) VALUES (?, ?, ?, ?) RETURNING id',
+            [image, link, position, active !== undefined ? active : true]
         );
-        return result.insertId;
+        return rows[0].id;
     }
 
     static async getAll() {
@@ -16,7 +16,7 @@ class AdModel {
     }
 
     static async getActive() {
-        const [rows] = await db.execute('SELECT * FROM ads WHERE active = 1 ORDER BY position, created_at DESC');
+        const [rows] = await db.execute('SELECT * FROM ads WHERE active = true ORDER BY position, created_at DESC');
         return rows;
     }
 

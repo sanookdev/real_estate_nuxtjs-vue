@@ -1,6 +1,6 @@
 /**
  * ============================================
- * Database Setup & Seed Script
+ * Database Setup & Seed Script (PostgreSQL/Supabase)
  * Asset Sale Real Estate Platform
  * ============================================
  * 
@@ -10,127 +10,158 @@
  *   node setupDb.js --reset  - Drop all tables, recreate, and seed
  * 
  * Make sure to set your .env file first:
- *   DB_HOST=localhost
- *   DB_USER=root
- *   DB_PASSWORD=yourpassword
- *   DB_NAME=asset_sale
+ *   DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
  * ============================================
  */
 
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-};
-
-const DB_NAME = process.env.DB_NAME || 'asset_sale';
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 // ============================================
-// TABLE SCHEMAS
+// ENUM TYPES (PostgreSQL)
+// ============================================
+
+const ENUM_TYPES = `
+-- User roles
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM ('user', 'admin', 'superadmin');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- User status
+DO $$ BEGIN
+    CREATE TYPE user_status AS ENUM ('pending', 'approved', 'blocked');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- Property condition
+DO $$ BEGIN
+    CREATE TYPE property_condition AS ENUM ('new', 'used');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- Listing status
+DO $$ BEGIN
+    CREATE TYPE listing_status AS ENUM ('pending', 'active', 'rejected', 'sold', 'inactive');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+-- Ad position
+DO $$ BEGIN
+    CREATE TYPE ad_position AS ENUM ('banner_top', 'bento_1', 'bento_2', 'bento_3', 'bento_4', 'sidebar');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+`;
+
+// ============================================
+// TABLE SCHEMAS (PostgreSQL)
 // ============================================
 
 const TABLES = {
   users: `
         CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             username VARCHAR(255) NOT NULL,
             email VARCHAR(255) NOT NULL UNIQUE,
+            phone VARCHAR(20) DEFAULT NULL,
             password_hash VARCHAR(255) NOT NULL,
-            role ENUM('user', 'admin', 'superadmin') DEFAULT 'user',
-            status ENUM('pending', 'approved', 'blocked') DEFAULT 'pending',
-            email_verified_at DATETIME DEFAULT NULL,
+            role user_role DEFAULT 'user',
+            status user_status DEFAULT 'pending',
+            email_verified_at TIMESTAMP DEFAULT NULL,
             verification_token VARCHAR(255) DEFAULT NULL,
             reset_password_token VARCHAR(255) DEFAULT NULL,
-            reset_password_expires DATETIME DEFAULT NULL,
+            reset_password_expires TIMESTAMP DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            INDEX idx_email (email),
-            INDEX idx_role (role),
-            INDEX idx_status (status),
-            INDEX idx_verification_token (verification_token),
-            INDEX idx_reset_token (reset_password_token)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `,
+
+  pending_verifications: `
+        CREATE TABLE IF NOT EXISTS pending_verifications (
+            id SERIAL PRIMARY KEY,
+            email VARCHAR(255) NOT NULL,
+            otp_code VARCHAR(6) NOT NULL,
+            otp_expires TIMESTAMP NOT NULL,
+            otp_attempts INT DEFAULT 0,
+            lockout_until TIMESTAMP DEFAULT NULL,
+            registration_token VARCHAR(64) DEFAULT NULL,
+            verified_at TIMESTAMP DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
     `,
 
   listings: `
         CREATE TABLE IF NOT EXISTS listings (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
+            id SERIAL PRIMARY KEY,
+            user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             title VARCHAR(255) NOT NULL,
             description TEXT,
             price DECIMAL(15, 2) NOT NULL,
             location VARCHAR(255),
             type VARCHAR(50),
-            property_condition ENUM('new', 'used') DEFAULT 'new',
-            images JSON,
-            facilities JSON,
+            property_condition property_condition DEFAULT 'new',
+            images JSONB,
+            facilities JSONB,
             nearby_places TEXT,
             google_map_link TEXT,
             province VARCHAR(100),
             district VARCHAR(100),
             subdistrict VARCHAR(100),
             postal_code VARCHAR(10),
-            status ENUM('pending', 'active', 'rejected', 'sold', 'inactive') DEFAULT 'pending',
+            status listing_status DEFAULT 'pending',
             is_pinned BOOLEAN DEFAULT FALSE,
-            pinned_at DATETIME DEFAULT NULL,
-            expires_at DATETIME,
+            pinned_at TIMESTAMP DEFAULT NULL,
+            expires_at TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            INDEX idx_status (status),
-            INDEX idx_type (type),
-            INDEX idx_province (province),
-            INDEX idx_price (price),
-            INDEX idx_created_at (created_at),
-            INDEX idx_is_pinned (is_pinned)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
     `,
 
   favorites: `
         CREATE TABLE IF NOT EXISTS favorites (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            listing_id INT NOT NULL,
+            id SERIAL PRIMARY KEY,
+            user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            listing_id INT NOT NULL REFERENCES listings(id) ON DELETE CASCADE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE KEY unique_favorite (user_id, listing_id),
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (listing_id) REFERENCES listings(id) ON DELETE CASCADE,
-            INDEX idx_user_id (user_id),
-            INDEX idx_listing_id (listing_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            UNIQUE(user_id, listing_id)
+        )
     `,
 
   ads: `
         CREATE TABLE IF NOT EXISTS ads (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             image VARCHAR(500),
             link VARCHAR(500),
-            position ENUM('banner_top', 'bento_1', 'bento_2', 'bento_3', 'bento_4', 'sidebar') NOT NULL,
+            position ad_position NOT NULL,
             active BOOLEAN DEFAULT TRUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            INDEX idx_position (position),
-            INDEX idx_active (active)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
     `,
 
   settings: `
         CREATE TABLE IF NOT EXISTS settings (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             setting_key VARCHAR(100) NOT NULL UNIQUE,
             setting_value TEXT,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            INDEX idx_key (setting_key)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
     `,
 
   contact_messages: `
         CREATE TABLE IF NOT EXISTS contact_messages (
-            id INT AUTO_INCREMENT PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             name VARCHAR(255) NOT NULL,
             surname VARCHAR(255),
             email VARCHAR(255) NOT NULL,
@@ -138,12 +169,74 @@ const TABLES = {
             subject VARCHAR(255),
             message TEXT NOT NULL,
             is_read BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX idx_is_read (is_read),
-            INDEX idx_created_at (created_at)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
     `
 };
+
+// ============================================
+// INDEXES
+// ============================================
+
+const INDEXES = [
+  'CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)',
+  'CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)',
+  'CREATE INDEX IF NOT EXISTS idx_users_status ON users(status)',
+  'CREATE INDEX IF NOT EXISTS idx_users_reset_token ON users(reset_password_token)',
+  'CREATE INDEX IF NOT EXISTS idx_pending_email ON pending_verifications(email)',
+  'CREATE INDEX IF NOT EXISTS idx_pending_reg_token ON pending_verifications(registration_token)',
+  'CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status)',
+  'CREATE INDEX IF NOT EXISTS idx_listings_type ON listings(type)',
+  'CREATE INDEX IF NOT EXISTS idx_listings_province ON listings(province)',
+  'CREATE INDEX IF NOT EXISTS idx_listings_price ON listings(price)',
+  'CREATE INDEX IF NOT EXISTS idx_listings_created_at ON listings(created_at)',
+  'CREATE INDEX IF NOT EXISTS idx_listings_is_pinned ON listings(is_pinned)',
+  'CREATE INDEX IF NOT EXISTS idx_favorites_user_id ON favorites(user_id)',
+  'CREATE INDEX IF NOT EXISTS idx_favorites_listing_id ON favorites(listing_id)',
+  'CREATE INDEX IF NOT EXISTS idx_ads_position ON ads(position)',
+  'CREATE INDEX IF NOT EXISTS idx_ads_active ON ads(active)',
+  'CREATE INDEX IF NOT EXISTS idx_settings_key ON settings(setting_key)',
+  'CREATE INDEX IF NOT EXISTS idx_contact_is_read ON contact_messages(is_read)',
+  'CREATE INDEX IF NOT EXISTS idx_contact_created_at ON contact_messages(created_at)'
+];
+
+// ============================================
+// TRIGGERS for updated_at
+// ============================================
+
+const TRIGGERS = `
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+CREATE TRIGGER update_users_updated_at
+    BEFORE UPDATE ON users
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_listings_updated_at ON listings;
+CREATE TRIGGER update_listings_updated_at
+    BEFORE UPDATE ON listings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_ads_updated_at ON ads;
+CREATE TRIGGER update_ads_updated_at
+    BEFORE UPDATE ON ads
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_settings_updated_at ON settings;
+CREATE TRIGGER update_settings_updated_at
+    BEFORE UPDATE ON settings
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+`;
 
 // ============================================
 // SEED DATA
@@ -282,32 +375,48 @@ async function getSeedData() {
 // SETUP FUNCTIONS
 // ============================================
 
-async function dropAllTables(db) {
+async function dropAllTables(client) {
   console.log('🗑️  Dropping all tables...');
-
-  // Disable foreign key checks
-  await db.query('SET FOREIGN_KEY_CHECKS = 0');
 
   const tableNames = Object.keys(TABLES).reverse();
   for (const table of tableNames) {
-    await db.query(`DROP TABLE IF EXISTS ${table}`);
+    await client.query(`DROP TABLE IF EXISTS ${table} CASCADE`);
     console.log(`   Dropped: ${table}`);
   }
 
-  // Re-enable foreign key checks
-  await db.query('SET FOREIGN_KEY_CHECKS = 1');
+  // Drop ENUM types
+  console.log('   Dropping ENUM types...');
+  await client.query(`
+    DROP TYPE IF EXISTS user_role CASCADE;
+    DROP TYPE IF EXISTS user_status CASCADE;
+    DROP TYPE IF EXISTS property_condition CASCADE;
+    DROP TYPE IF EXISTS listing_status CASCADE;
+    DROP TYPE IF EXISTS ad_position CASCADE;
+  `);
 }
 
-async function createTables(db) {
-  console.log('📦 Creating tables...');
+async function createTables(client) {
+  console.log('📦 Creating ENUM types...');
+  await client.query(ENUM_TYPES);
 
+  console.log('📦 Creating tables...');
   for (const [name, schema] of Object.entries(TABLES)) {
-    await db.query(schema);
+    await client.query(schema);
     console.log(`   ✓ Created: ${name}`);
   }
+
+  console.log('📦 Creating indexes...');
+  for (const indexSql of INDEXES) {
+    await client.query(indexSql);
+  }
+  console.log(`   ✓ ${INDEXES.length} indexes created`);
+
+  console.log('📦 Creating triggers...');
+  await client.query(TRIGGERS);
+  console.log('   ✓ Triggers created');
 }
 
-async function seedData(db) {
+async function seedData(client) {
   console.log('🌱 Seeding data...');
 
   const data = await getSeedData();
@@ -315,8 +424,8 @@ async function seedData(db) {
   // Seed Users
   console.log('   → Inserting users...');
   for (const user of data.users) {
-    await db.execute(
-      'INSERT INTO users (username, email, password_hash, role, status, email_verified_at) VALUES (?, ?, ?, ?, ?, ?)',
+    await client.query(
+      'INSERT INTO users (username, email, password_hash, role, status, email_verified_at) VALUES ($1, $2, $3, $4, $5, $6)',
       [user.username, user.email, user.password_hash, user.role, user.status, user.email_verified_at]
     );
   }
@@ -325,8 +434,9 @@ async function seedData(db) {
   // Seed Settings
   console.log('   → Inserting settings...');
   for (const setting of data.settings) {
-    await db.execute(
-      'INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)',
+    await client.query(
+      `INSERT INTO settings (setting_key, setting_value) VALUES ($1, $2) 
+       ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value`,
       [setting.key, setting.value]
     );
   }
@@ -335,9 +445,9 @@ async function seedData(db) {
   // Seed Listings
   console.log('   → Inserting sample listings...');
   for (const listing of data.listings) {
-    await db.execute(
+    await client.query(
       `INSERT INTO listings (user_id, title, description, price, location, type, property_condition, images, facilities, nearby_places, province, district, subdistrict, postal_code, status) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
       [
         listing.user_id, listing.title, listing.description, listing.price,
         listing.location, listing.type, listing.property_condition,
@@ -351,8 +461,8 @@ async function seedData(db) {
   // Seed Ads
   console.log('   → Inserting ads...');
   for (const ad of data.ads) {
-    await db.execute(
-      'INSERT INTO ads (image, link, position, active) VALUES (?, ?, ?, ?)',
+    await client.query(
+      'INSERT INTO ads (image, link, position, active) VALUES ($1, $2, $3, $4)',
       [ad.image, ad.link, ad.position, ad.active]
     );
   }
@@ -369,34 +479,24 @@ async function setupDatabase() {
   const shouldReset = args.includes('--reset');
 
   console.log('\n============================================');
-  console.log('🏠 Asset Sale - Database Setup');
+  console.log('🏠 Asset Sale - Database Setup (PostgreSQL)');
   console.log('============================================\n');
 
+  const client = await pool.connect();
+
   try {
-    // Connect without database first
-    const connection = await mysql.createConnection(dbConfig);
-
-    // Create Database if not exists
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
-    console.log(`✓ Database "${DB_NAME}" ready.\n`);
-    await connection.end();
-
-    // Connect to the specific database
-    const db = await mysql.createConnection({
-      ...dbConfig,
-      database: DB_NAME
-    });
+    console.log('✓ Connected to PostgreSQL database.\n');
 
     if (shouldReset) {
-      await dropAllTables(db);
+      await dropAllTables(client);
       console.log('');
     }
 
-    await createTables(db);
+    await createTables(client);
     console.log('');
 
     if (shouldSeed || shouldReset) {
-      await seedData(db);
+      await seedData(client);
       console.log('');
     }
 
@@ -411,12 +511,14 @@ async function setupDatabase() {
       console.log('   User:       user@assetsale.com / user123\n');
     }
 
-    await db.end();
-    process.exit(0);
   } catch (error) {
     console.error('\n❌ Error setting up database:', error.message);
     console.error(error);
     process.exit(1);
+  } finally {
+    client.release();
+    await pool.end();
+    process.exit(0);
   }
 }
 

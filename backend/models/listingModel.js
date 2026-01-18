@@ -3,32 +3,34 @@ const db = require('../config/db');
 class ListingModel {
     static async create(data) {
         const { user_id, title, description, price, location, type, images, expires_at, property_condition, facilities, nearby_places, google_map_link, province, district, subdistrict, postal_code, status } = data;
-        const [result] = await db.execute(
-            'INSERT INTO listings (user_id, title, description, price, location, type, images, expires_at, property_condition, facilities, nearby_places, google_map_link, province, district, subdistrict, postal_code, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        const [rows] = await db.execute(
+            'INSERT INTO listings (user_id, title, description, price, location, type, images, expires_at, property_condition, facilities, nearby_places, google_map_link, province, district, subdistrict, postal_code, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id',
             [user_id, title, description, price, location, type, JSON.stringify(images), expires_at, property_condition || 'new', JSON.stringify(facilities || []), nearby_places || null, google_map_link || null, province || null, district || null, subdistrict || null, postal_code || null, status || 'pending']
         );
-        return result.insertId;
+        return rows[0].id;
     }
 
     static async findAll(filters = {}) {
         let query = 'SELECT l.*, u.username FROM listings l JOIN users u ON l.user_id = u.id WHERE 1=1';
         const params = [];
+        let paramIndex = 0;
 
         if (filters.status) {
-            query += ' AND l.status = ?';
+            paramIndex++;
+            query += ` AND l.status = $${paramIndex}`;
             params.push(filters.status);
         }
 
         if (filters.type) {
-            query += ' AND l.type = ?';
+            paramIndex++;
+            query += ` AND l.type = $${paramIndex}`;
             params.push(filters.type);
         }
-        // Add more filters as needed
 
         query += ' ORDER BY l.created_at DESC';
 
-        const [rows] = await db.execute(query, params);
-        return rows;
+        const result = await db.query(query, params);
+        return result.rows;
     }
 
     static async findById(id) {
@@ -42,7 +44,6 @@ class ListingModel {
     }
 
     static async update(id, data) {
-        // Dynamic update query could be better, but fixed fields for now
         const { title, description, price, location, type, images, status, property_condition, facilities, nearby_places, google_map_link, province, district, subdistrict, postal_code } = data;
         await db.execute(
             'UPDATE listings SET title=?, description=?, price=?, location=?, type=?, images=?, status=?, property_condition=?, facilities=?, nearby_places=?, google_map_link=?, province=?, district=?, subdistrict=?, postal_code=? WHERE id=?',
@@ -66,40 +67,51 @@ class ListingModel {
         const offset = (page - 1) * limit;
         let query = 'SELECT l.*, u.username FROM listings l JOIN users u ON l.user_id = u.id WHERE 1=1';
         const params = [];
+        let paramIndex = 0;
 
         if (filters.status) {
-            query += ' AND l.status = ?';
+            paramIndex++;
+            query += ` AND l.status = $${paramIndex}`;
             params.push(filters.status);
         }
 
         if (filters.search) {
-            query += ' AND (l.title LIKE ? OR l.description LIKE ?)';
             const searchTerm = `%${filters.search}%`;
-            params.push(searchTerm, searchTerm);
+            paramIndex++;
+            query += ` AND (l.title ILIKE $${paramIndex}`;
+            params.push(searchTerm);
+            paramIndex++;
+            query += ` OR l.description ILIKE $${paramIndex})`;
+            params.push(searchTerm);
         }
 
         if (filters.publisher) {
-            query += ' AND u.username LIKE ?';
+            paramIndex++;
+            query += ` AND u.username ILIKE $${paramIndex}`;
             params.push(`%${filters.publisher}%`);
         }
 
         if (filters.minPrice) {
-            query += ' AND l.price >= ?';
+            paramIndex++;
+            query += ` AND l.price >= $${paramIndex}`;
             params.push(filters.minPrice);
         }
 
         if (filters.maxPrice) {
-            query += ' AND l.price <= ?';
+            paramIndex++;
+            query += ` AND l.price <= $${paramIndex}`;
             params.push(filters.maxPrice);
         }
 
         if (filters.dateFrom) {
-            query += ' AND l.created_at >= ?';
+            paramIndex++;
+            query += ` AND l.created_at >= $${paramIndex}`;
             params.push(filters.dateFrom);
         }
 
         if (filters.dateTo) {
-            query += ' AND l.created_at <= ?';
+            paramIndex++;
+            query += ` AND l.created_at <= $${paramIndex}`;
             params.push(filters.dateTo + ' 23:59:59');
         }
 
@@ -107,52 +119,75 @@ class ListingModel {
             query += ' AND l.is_pinned = TRUE';
         }
 
-        query += ' ORDER BY l.created_at DESC LIMIT ? OFFSET ?';
-        params.push(String(limit), String(offset));
+        paramIndex++;
+        query += ` ORDER BY l.created_at DESC LIMIT $${paramIndex}`;
+        params.push(limit);
 
-        const [rows] = await db.execute(query, params);
-        return rows;
+        paramIndex++;
+        query += ` OFFSET $${paramIndex}`;
+        params.push(offset);
+
+        const result = await db.query(query, params);
+        return result.rows;
     }
 
     static async countWithPagination(filters = {}) {
-        let query = 'SELECT COUNT(*) as total FROM listings l WHERE 1=1';
+        let query = 'SELECT COUNT(*) as total FROM listings l';
         const params = [];
+        let paramIndex = 0;
+        let hasPublisherFilter = false;
+
+        // Check if we need join for publisher filter
+        if (filters.publisher) {
+            query += ' JOIN users u ON l.user_id = u.id';
+            hasPublisherFilter = true;
+        }
+
+        query += ' WHERE 1=1';
 
         if (filters.status) {
-            query += ' AND l.status = ?';
+            paramIndex++;
+            query += ` AND l.status = $${paramIndex}`;
             params.push(filters.status);
         }
 
         if (filters.search) {
-            query += ' AND (l.title LIKE ? OR l.description LIKE ?)';
             const searchTerm = `%${filters.search}%`;
-            params.push(searchTerm, searchTerm);
+            paramIndex++;
+            query += ` AND (l.title ILIKE $${paramIndex}`;
+            params.push(searchTerm);
+            paramIndex++;
+            query += ` OR l.description ILIKE $${paramIndex})`;
+            params.push(searchTerm);
         }
 
-        if (filters.publisher) {
-            // Need join to filter by username in count as well if we filter by publisher name
-            query = query.replace('FROM listings l', 'FROM listings l JOIN users u ON l.user_id = u.id');
-            query += ' AND u.username LIKE ?';
+        if (hasPublisherFilter) {
+            paramIndex++;
+            query += ` AND u.username ILIKE $${paramIndex}`;
             params.push(`%${filters.publisher}%`);
         }
 
         if (filters.minPrice) {
-            query += ' AND l.price >= ?';
+            paramIndex++;
+            query += ` AND l.price >= $${paramIndex}`;
             params.push(filters.minPrice);
         }
 
         if (filters.maxPrice) {
-            query += ' AND l.price <= ?';
+            paramIndex++;
+            query += ` AND l.price <= $${paramIndex}`;
             params.push(filters.maxPrice);
         }
 
         if (filters.dateFrom) {
-            query += ' AND l.created_at >= ?';
+            paramIndex++;
+            query += ` AND l.created_at >= $${paramIndex}`;
             params.push(filters.dateFrom);
         }
 
         if (filters.dateTo) {
-            query += ' AND l.created_at <= ?';
+            paramIndex++;
+            query += ` AND l.created_at <= $${paramIndex}`;
             params.push(filters.dateTo + ' 23:59:59');
         }
 
@@ -160,8 +195,8 @@ class ListingModel {
             query += ' AND l.is_pinned = TRUE';
         }
 
-        const [rows] = await db.execute(query, params);
-        return rows[0].total;
+        const result = await db.query(query, params);
+        return parseInt(result.rows[0].total);
     }
 
     // Get all pinned listings for Hot Sale section

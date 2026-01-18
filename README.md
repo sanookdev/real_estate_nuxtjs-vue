@@ -13,13 +13,19 @@
 ### Backend
 - **Runtime:** Node.js
 - **Framework:** Express.js
-- **Database:** MySQL
+- **Database:** PostgreSQL (Supabase)
 - **Authentication:** JWT (JSON Web Tokens)
 - **File Upload:** Multer
 
 ---
 
-## � Quick Start (ติดตั้งเครื่องใหม่)
+## 🚀 Quick Start (ติดตั้งเครื่องใหม่)
+
+### Prerequisites
+1. สร้าง Supabase Project ที่ [supabase.com](https://supabase.com)
+2. คัดลอก **Database URL** จาก Supabase Dashboard:
+   - ไปที่ **Settings** → **Database** → **Connection string** → **URI**
+   - ใช้ **Transaction Pooler** connection string
 
 ### ขั้นตอนทั้งหมด
 ```bash
@@ -31,7 +37,7 @@ cd asset_sale
 cd backend
 npm install
 cp .env.example .env      # คัดลอกไฟล์ config ตัวอย่าง
-# แก้ไข .env ตามค่าเครื่องใหม่
+# แก้ไข .env ใส่ DATABASE_URL จาก Supabase
 
 # 3. Setup Database (สำคัญ!)
 node setupDb.js --seed    # สร้างตาราง + ข้อมูลตัวอย่าง
@@ -51,11 +57,8 @@ npm run dev               # รันทั้ง Backend + Frontend พร้�
 
 ### Backend `.env` Configuration
 ```env
-# Database
-DB_HOST=localhost        # หรือ IP ของ MySQL server
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=asset_sale
+# Database (Supabase PostgreSQL)
+DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
 
 # JWT Secret (ใช้สร้าง token - ควรตั้งให้ซับซ้อน)
 JWT_SECRET=your_super_secret_key_here_change_this
@@ -65,13 +68,26 @@ SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your_email@gmail.com
 SMTP_PASS=your_app_password
+
+# Environment
+NODE_ENV=development
 ```
 
-### ✅ ใช่! แค่แก้ .env แล้วรัน setupDb.js ก็พอ!
+### 📋 วิธีหา DATABASE_URL จาก Supabase
+1. ไปที่ [Supabase Dashboard](https://supabase.com/dashboard)
+2. เลือก Project ของคุณ
+3. ไปที่ **Settings** (ไอคอนเฟือง)
+4. เลือก **Database**
+5. ใน **Connection string** section:
+   - เลือก Tab **URI**
+   - คัดลอก connection string
+   - **สำคัญ:** แทนที่ `[YOUR-PASSWORD]` ด้วยรหัสผ่าน database
+
+### ✅ ใช่! แค่แก้ DATABASE_URL ใน .env แล้วรัน setupDb.js ก็พอ!
 
 ---
 
-## 🗄️ Database Setup (3 วิธี)
+## 🗄️ Database Setup (2 วิธี)
 
 ### วิธีที่ 1: ใช้ Node.js Script (แนะนำ ✨)
 ```bash
@@ -87,18 +103,10 @@ node setupDb.js --seed
 node setupDb.js --reset
 ```
 
-### วิธีที่ 2: Import SQL ตรง
-```bash
-# ผ่าน MySQL CLI
-mysql -u root -p < backend/database/schema.sql
-
-# หรือ Import ผ่าน phpMyAdmin / MySQL Workbench
-# file: backend/database/schema.sql
-```
-
-### วิธีที่ 3: Manual (สร้างเอง)
-1. สร้าง Database ชื่อ `asset_sale`
-2. รัน `node setupDb.js` เพื่อสร้างตาราง
+### วิธีที่ 2: Import SQL ผ่าน Supabase Dashboard
+1. ไปที่ Supabase Dashboard → **SQL Editor**
+2. เปิดไฟล์ `database/schema_postgres.sql`
+3. คัดลอกและรัน SQL
 
 ---
 
@@ -119,6 +127,7 @@ mysql -u root -p < backend/database/schema.sql
 | Table | Description |
 |-------|-------------|
 | `users` | ผู้ใช้งาน, role, status |
+| `pending_verifications` | OTP สำหรับยืนยันอีเมล |
 | `listings` | ประกาศอสังหา (ที่อยู่, สิ่งอำนวยความสะดวก, สถานะ) |
 | `favorites` | รายการโปรดของผู้ใช้ |
 | `ads` | โฆษณา (banner, bento grid) |
@@ -158,7 +167,7 @@ npm start        # หรือใช้ PM2
 ```
 asset_sale/
 ├── backend/
-│   ├── config/           # Database connection
+│   ├── config/           # Database connection (PostgreSQL)
 │   ├── controllers/      # API logic
 │   ├── database/         # SQL schema files
 │   ├── middleware/       # Auth, upload middleware
@@ -169,6 +178,10 @@ asset_sale/
 │   ├── .env              # Environment config
 │   ├── setupDb.js        # Database setup script
 │   └── server.js         # Entry point
+│
+├── database/
+│   ├── schema.sql        # Legacy MySQL schema
+│   └── schema_postgres.sql  # PostgreSQL schema (Supabase)
 │
 ├── frontend/
 │   ├── layouts/          # Layout templates
@@ -194,32 +207,54 @@ asset_sale/
 
 ---
 
-## � Troubleshooting
+## 🛠️ Troubleshooting
 
 ### ปัญหาที่พบบ่อย
 
 **1. ต่อ Database ไม่ได้**
 ```bash
-# ตรวจสอบ MySQL running
-sudo systemctl status mysql
-
-# ตรวจสอบ .env ถูกต้อง
+# ตรวจสอบ .env
 cat backend/.env
+
+# ทดสอบ connection
+cd backend
+node -e "const db = require('./config/db'); db.query('SELECT NOW()').then(r => console.log('Connected:', r.rows)).catch(console.error)"
 ```
 
-**2. Port 5000/3000 ถูกใช้งาน**
+**2. Error: ENUM type already exists**
+```bash
+# ใช้ --reset เพื่อ drop ทุกอย่างแล้วสร้างใหม่
+node setupDb.js --reset
+```
+
+**3. Port 5000/3000 ถูกใช้งาน**
 ```bash
 # หา process ที่ใช้ port
 lsof -i :5000
 kill -9 <PID>
 ```
 
-**3. bcrypt error ตอน install**
+**4. bcrypt error ตอน install**
 ```bash
 # ติดตั้ง build tools
 sudo apt-get install build-essential
 npm rebuild bcrypt --build-from-source
 ```
+
+---
+
+## 🔄 Migration from MySQL
+
+โปรเจ็คนี้ได้ย้ายจาก MySQL มาใช้ PostgreSQL (Supabase) แล้ว
+
+**Key Changes:**
+- ใช้ `pg` library แทน `mysql2`
+- ENUM types สร้างเป็น custom types
+- `AUTO_INCREMENT` → `SERIAL`
+- `ON UPDATE CURRENT_TIMESTAMP` → Triggers
+- `JSON` → `JSONB`
+- `LIKE` → `ILIKE` (case-insensitive search)
+- `ON DUPLICATE KEY UPDATE` → `ON CONFLICT DO UPDATE`
 
 ---
 
