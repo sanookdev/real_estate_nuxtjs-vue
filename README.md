@@ -137,7 +137,7 @@ node setupDb.js --reset
 ---
 
 ## 🏃 Running the App
-
+.
 ### Development Mode
 ```bash
 # รันทั้งคู่พร้อมกัน (root directory)
