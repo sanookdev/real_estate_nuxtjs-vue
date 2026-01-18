@@ -28,8 +28,8 @@
               <span>HOT</span>
             </div>
             <img 
-              :src="currentImage ? `${apiUrl}/uploads/${currentImage}` : 'https://placehold.co/800x600/166534/ffffff?text=Property'" 
-              class="w-full h-[450px] object-cover"
+              :src="getImageUrl(currentImage)" 
+              class="w-full h-full object-cover"
               :class="{ 'pt-12': listing.status === 'sold' }"
             />
           </div>
@@ -42,7 +42,7 @@
               class="w-24 h-16 rounded-lg overflow-hidden cursor-pointer border-2 shrink-0 transition-all"
               :class="currentImage === img ? 'border-green-500' : 'border-transparent hover:border-gray-300'"
             >
-              <img :src="`${apiUrl}/uploads/${img}`" class="w-full h-full object-cover" />
+              <img :src="getImageUrl(img)" class="w-full h-full object-cover" />
             </div>
           </div>
 
@@ -220,7 +220,7 @@
           >
             <div class="relative h-48 overflow-hidden">
               <img 
-                :src="related.images && related.images.length ? `${apiUrl}/uploads/${related.images[0]}` : 'https://placehold.co/400x300/166534/ffffff?text=Property'" 
+                :src="getListingImage(related)" 
                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <span class="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
@@ -312,6 +312,23 @@ const formatDate = (dateString) => {
         month: 'long',
         day: 'numeric'
     });
+};
+
+const getImageUrl = (imagePath) => {
+    if (!imagePath) return 'https://placehold.co/800x600/166534/ffffff?text=Property';
+    // If already a full URL (Supabase), use as-is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    // Legacy local path
+    return `${apiUrl}/uploads/${imagePath}`;
+};
+
+const getListingImage = (listing) => {
+    if (listing.images && listing.images.length > 0) {
+        return getImageUrl(listing.images[0]);
+    }
+    return 'https://placehold.co/400x300/166534/ffffff?text=Property';
 };
 
 onMounted(async () => {

@@ -1,4 +1,15 @@
 const ListingModel = require('../models/listingModel');
+const supabaseStorage = require('../services/supabaseStorage');
+const path = require('path');
+
+/**
+ * Generate unique filename
+ */
+function generateFilename(originalname) {
+    const ext = path.extname(originalname);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    return uniqueSuffix + ext;
+}
 
 exports.createListing = async (req, res) => {
     try {
@@ -7,9 +18,6 @@ exports.createListing = async (req, res) => {
             property_condition, facilities, nearby_places, google_map_link,
             province, district, subdistrict, postal_code
         } = req.body;
-
-        // Initial images are just filenames from temp folder
-        const tempImages = req.files ? req.files.map(file => file.filename) : [];
 
         if (!title || !price) {
             return res.status(400).json({ message: 'Title and Price are required' });
@@ -24,8 +32,7 @@ exports.createListing = async (req, res) => {
             initialStatus = 'active';
         }
 
-        // 1. Create Listings with empty or temp images (we will update later)
-        // Note: ListingModel need to support status field if not already
+        // 1. Create Listing first to get ID
         const listingId = await ListingModel.create({
             user_id: req.user.id,
             title,
@@ -33,7 +40,7 @@ exports.createListing = async (req, res) => {
             price,
             location,
             type,
-            images: [], // Start empty, will update after move
+            images: [], // Start empty, will update after upload
             expires_at: expiryDate,
             property_condition,
             facilities: facilities ? JSON.parse(facilities) : [],
@@ -46,33 +53,29 @@ exports.createListing = async (req, res) => {
             status: initialStatus
         });
 
-        // 2. Move files from temp to uploads/listings/{id}
-        const fs = require('fs');
-        const path = require('path');
-        const newImagePaths = [];
+        // 2. Upload images to Supabase Storage
+        const imageUrls = [];
 
-        if (tempImages.length > 0) {
-            const tempDir = 'uploads/temp';
-            const targetDir = `uploads/listings/${listingId}`;
+        if (req.files && req.files.length > 0 && supabaseStorage.isAvailable()) {
+            for (const file of req.files) {
+                const filename = generateFilename(file.originalname);
+                const filePath = `listings/${listingId}/${filename}`;
 
-            if (!fs.existsSync(targetDir)) {
-                fs.mkdirSync(targetDir, { recursive: true });
-            }
+                const result = await supabaseStorage.uploadFile(
+                    file.buffer,
+                    filePath,
+                    file.mimetype
+                );
 
-            for (const filename of tempImages) {
-                const oldPath = path.join(tempDir, filename);
-                const newFilename = filename; // Keep same filename
-                const newPath = path.join(targetDir, newFilename);
-
-                if (fs.existsSync(oldPath)) {
-                    fs.renameSync(oldPath, newPath);
-                    // Store relative path for frontend usage
-                    newImagePaths.push(`listings/${listingId}/${newFilename}`);
+                if (result) {
+                    imageUrls.push(result.url);
                 }
             }
 
-            // 3. Update Listing with new paths
-            await ListingModel.updateImages(listingId, newImagePaths);
+            // 3. Update Listing with image URLs
+            if (imageUrls.length > 0) {
+                await ListingModel.updateImages(listingId, imageUrls);
+            }
         }
 
         res.status(201).json({ message: 'Listing created successfully', listingId });
@@ -163,6 +166,15 @@ exports.deleteListing = async (req, res) => {
         // Check ownership or admin
         if (listing.user_id !== req.user.id && req.user.role !== 'admin' && req.user.role !== 'superadmin') {
             return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        // Optional: Delete images from Supabase Storage
+        if (listing.images && supabaseStorage.isAvailable()) {
+            const images = typeof listing.images === 'string' ? JSON.parse(listing.images) : listing.images;
+            const paths = images.map(url => supabaseStorage.extractPathFromUrl(url)).filter(p => p);
+            if (paths.length > 0) {
+                await supabaseStorage.deleteFiles(paths);
+            }
         }
 
         await ListingModel.delete(req.params.id);
@@ -293,7 +305,6 @@ exports.updateListing = async (req, res) => {
         let images = [];
         if (existingImages !== undefined && existingImages !== null) {
             // Parse existing images that user wants to keep (after deletion)
-            // This includes empty arrays for deleting all images
             images = typeof existingImages === 'string' ? JSON.parse(existingImages) : existingImages;
         } else {
             // Fallback to all original images only if existingImages not sent at all
@@ -301,26 +312,22 @@ exports.updateListing = async (req, res) => {
             if (typeof images === 'string') images = JSON.parse(images);
         }
 
-        if (req.files && req.files.length > 0) {
-            const tempImages = req.files.map(file => file.filename);
-            const fs = require('fs');
-            const path = require('path');
-            const tempDir = 'uploads/temp';
-            const targetDir = `uploads/listings/${listing.id}`;
+        // Upload new images to Supabase
+        if (req.files && req.files.length > 0 && supabaseStorage.isAvailable()) {
+            for (const file of req.files) {
+                const filename = generateFilename(file.originalname);
+                const filePath = `listings/${listing.id}/${filename}`;
 
-            if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
+                const result = await supabaseStorage.uploadFile(
+                    file.buffer,
+                    filePath,
+                    file.mimetype
+                );
 
-            const newImagePaths = [];
-            for (const filename of tempImages) {
-                const oldPath = path.join(tempDir, filename);
-                const newPath = path.join(targetDir, filename);
-                if (fs.existsSync(oldPath)) {
-                    fs.renameSync(oldPath, newPath);
-                    newImagePaths.push(`listings/${listing.id}/${filename}`);
+                if (result) {
+                    images.push(result.url);
                 }
             }
-            // Append new images
-            images = [...images, ...newImagePaths];
         }
 
         // Update DB

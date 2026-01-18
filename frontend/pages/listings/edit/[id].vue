@@ -128,7 +128,7 @@
             <p class="text-sm font-medium text-gray-700 mb-2">รูปภาพปัจจุบัน (คลิก X เพื่อลบ)</p>
             <div class="flex gap-2 flex-wrap">
               <div v-for="(img, index) in existingImages" :key="index" class="relative group w-24 h-24">
-                <img :src="`${apiUrl}/uploads/${img}`" class="w-full h-full object-cover rounded-lg border" />
+                <img :src="getImageUrl(img)" class="w-full h-full object-cover rounded-lg border" />
                 <button 
                   type="button"
                   @click="removeImage(index)"
@@ -168,6 +168,17 @@ const loading = ref(false);
 const newImages = ref([]);
 const newImagePreviews = ref([]);
 const existingImages = ref([]);
+
+// Helper function for image URLs (supports Supabase)
+const getImageUrl = (imagePath) => {
+    if (!imagePath) return '';
+    // If already a full URL (Supabase), use as-is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    // Legacy local path
+    return `${apiUrl}/uploads/${imagePath}`;
+};
 
 // Address Data State
 const provinces = ref([]);

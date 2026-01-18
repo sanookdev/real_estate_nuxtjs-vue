@@ -384,7 +384,7 @@
             class="block relative w-full h-48 md:h-64 lg:h-72 rounded-2xl overflow-hidden group cursor-pointer"
           >
             <img 
-              :src="`${apiUrl}/uploads/${ads.banner_top.image}`" 
+              :src="getAdImage(ads.banner_top.image)" 
               class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
             />
             <!-- Gradient Overlay -->
@@ -417,7 +417,7 @@
               class="md:col-span-7 relative h-64 md:h-80 rounded-2xl overflow-hidden group cursor-pointer"
             >
               <img 
-                :src="`${apiUrl}/uploads/${ads.bento_1.image}`" 
+                :src="getAdImage(ads.bento_1.image)" 
                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
               />
               <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -450,7 +450,7 @@
                 class="relative h-36 md:h-[calc(50%-0.5rem)] min-h-[150px] rounded-2xl overflow-hidden group cursor-pointer"
               >
                 <img 
-                  :src="`${apiUrl}/uploads/${ads.bento_2.image}`" 
+                  :src="getAdImage(ads.bento_2.image)" 
                   class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                 />
                 <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
@@ -478,7 +478,7 @@
                   class="relative h-32 md:h-full min-h-[120px] rounded-xl overflow-hidden group cursor-pointer"
                 >
                   <img 
-                    :src="`${apiUrl}/uploads/${ads.bento_3.image}`" 
+                    :src="getAdImage(ads.bento_3.image)" 
                     class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                   />
                   <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
@@ -497,7 +497,7 @@
                   class="relative h-32 md:h-full min-h-[120px] rounded-xl overflow-hidden group cursor-pointer"
                 >
                   <img 
-                    :src="`${apiUrl}/uploads/${ads.bento_4.image}`" 
+                    :src="getAdImage(ads.bento_4.image)" 
                     class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                   />
                   <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
@@ -831,9 +831,25 @@ const getCategoryCount = (type) => {
 
 const getListingImage = (listing) => {
   if (listing.images && listing.images.length > 0) {
-    return `${apiUrl}/uploads/${listing.images[0]}`;
+    const img = listing.images[0];
+    // If already a full URL (Supabase), use as-is
+    if (img.startsWith('http://') || img.startsWith('https://')) {
+      return img;
+    }
+    // Legacy local path
+    return `${apiUrl}/uploads/${img}`;
   }
   return 'https://placehold.co/600x400/166534/ffffff?text=Property';
+};
+
+const getAdImage = (adImage) => {
+  if (!adImage) return '';
+  // If already a full URL (Supabase), use as-is
+  if (adImage.startsWith('http://') || adImage.startsWith('https://')) {
+    return adImage;
+  }
+  // Legacy local path
+  return `${apiUrl}/uploads/${adImage}`;
 };
 
 const fetchFavorites = async () => {

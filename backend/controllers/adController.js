@@ -1,6 +1,15 @@
 const AdModel = require('../models/adModel');
-const fs = require('fs');
+const supabaseStorage = require('../services/supabaseStorage');
 const path = require('path');
+
+/**
+ * Generate unique filename
+ */
+function generateFilename(originalname) {
+    const ext = path.extname(originalname);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    return uniqueSuffix + ext;
+}
 
 exports.getAllAds = async (req, res) => {
     try {
@@ -27,16 +36,20 @@ exports.createAd = async (req, res) => {
         const { link, position, active } = req.body;
         let image = '';
 
-        if (req.file) {
-            image = req.file.filename;
-            const tempPath = path.join('uploads/temp', image);
-            const targetDir = 'uploads/ads';
-            if (!fs.existsSync(targetDir)) {
-                fs.mkdirSync(targetDir, { recursive: true });
+        // Upload to Supabase Storage
+        if (req.file && supabaseStorage.isAvailable()) {
+            const filename = generateFilename(req.file.originalname);
+            const filePath = `ads/${filename}`;
+
+            const result = await supabaseStorage.uploadFile(
+                req.file.buffer,
+                filePath,
+                req.file.mimetype
+            );
+
+            if (result) {
+                image = result.url;
             }
-            const targetPath = path.join(targetDir, image);
-            fs.renameSync(tempPath, targetPath);
-            image = `ads/${image}`;
         }
 
         await AdModel.create({ image, link, position, active: active === 'true' || active === true });
@@ -54,16 +67,28 @@ exports.updateAd = async (req, res) => {
         if (!ad) return res.status(404).json({ message: 'Ad not found' });
 
         let image = ad.image;
-        if (req.file) {
-            const newImage = req.file.filename;
-            const tempPath = path.join('uploads/temp', newImage);
-            const targetDir = 'uploads/ads';
-            if (!fs.existsSync(targetDir)) {
-                fs.mkdirSync(targetDir, { recursive: true });
+
+        // Upload new image to Supabase Storage
+        if (req.file && supabaseStorage.isAvailable()) {
+            const filename = generateFilename(req.file.originalname);
+            const filePath = `ads/${filename}`;
+
+            const result = await supabaseStorage.uploadFile(
+                req.file.buffer,
+                filePath,
+                req.file.mimetype
+            );
+
+            if (result) {
+                // Optional: Delete old image
+                if (ad.image) {
+                    const oldPath = supabaseStorage.extractPathFromUrl(ad.image);
+                    if (oldPath) {
+                        await supabaseStorage.deleteFile(oldPath);
+                    }
+                }
+                image = result.url;
             }
-            const targetPath = path.join(targetDir, newImage);
-            fs.renameSync(tempPath, targetPath);
-            image = `ads/${newImage}`;
         }
 
         await AdModel.update(req.params.id, {
@@ -82,6 +107,16 @@ exports.updateAd = async (req, res) => {
 
 exports.deleteAd = async (req, res) => {
     try {
+        const ad = await AdModel.findById(req.params.id);
+
+        // Delete image from Supabase Storage
+        if (ad && ad.image && supabaseStorage.isAvailable()) {
+            const imagePath = supabaseStorage.extractPathFromUrl(ad.image);
+            if (imagePath) {
+                await supabaseStorage.deleteFile(imagePath);
+            }
+        }
+
         await AdModel.delete(req.params.id);
         res.json({ message: 'Ad deleted' });
     } catch (error) {

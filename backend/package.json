@@ -17,6 +17,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "pg": "^8.11.3",
-    "nodemailer": "^7.0.12"
+    "nodemailer": "^7.0.12",
+    "@supabase/supabase-js": "^2.39.0"
   }
 }

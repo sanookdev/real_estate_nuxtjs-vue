@@ -276,7 +276,7 @@
         <UCard>
           <UTable :rows="ads" :columns="adColumns" :loading="loadingAds">
             <template #image-data="{ row }">
-              <img :src="`${apiUrl}/uploads/${row.image}`" class="h-16 w-auto object-cover rounded" />
+              <img :src="getAdImage(row.image)" class="h-16 w-auto object-cover rounded" />
             </template>
             
             <template #active-data="{ row }">
@@ -470,9 +470,25 @@ const pendingListings = computed(() => {
 
 const getListingImage = (listing) => {
   if (listing.images && listing.images.length > 0) {
-    return `${apiUrl}/uploads/${listing.images[0]}`;
+    const img = listing.images[0];
+    // If already a full URL (Supabase), use as-is
+    if (img.startsWith('http://') || img.startsWith('https://')) {
+      return img;
+    }
+    // Legacy local path
+    return `${apiUrl}/uploads/${img}`;
   }
   return 'https://placehold.co/100x100?text=No+Image';
+};
+
+const getAdImage = (adImage) => {
+  if (!adImage) return '';
+  // If already a full URL (Supabase), use as-is
+  if (adImage.startsWith('http://') || adImage.startsWith('https://')) {
+    return adImage;
+  }
+  // Legacy local path
+  return `${apiUrl}/uploads/${adImage}`;
 };
 
 const getStatusColor = (status) => {

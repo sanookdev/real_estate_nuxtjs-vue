@@ -278,10 +278,17 @@ const isScrolled = ref(false);
 const showScrollTop = ref(false);
 const mobileMenuOpen = ref(false);
 
-// Get logo URL helper (handles demo mode)
+// Get logo URL helper (handles demo mode and Supabase URLs)
 const getLogoUrl = () => {
   const logo = settingsStore.siteLogo;
-  if (isDemoMode && logo && logo.startsWith('demo/')) {
+  if (!logo) return '';
+  
+  // If already a full URL (Supabase), use as-is
+  if (logo.startsWith('http://') || logo.startsWith('https://')) {
+    return logo;
+  }
+  
+  if (isDemoMode && logo.startsWith('demo/')) {
     return `/${logo}`;
   }
   return `${apiUrl}/uploads/${logo}`;

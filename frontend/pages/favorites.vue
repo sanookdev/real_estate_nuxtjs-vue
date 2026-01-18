@@ -138,7 +138,13 @@ const fetchFavorites = async () => {
 
 const getListingImage = (listing) => {
   if (listing.images && listing.images.length > 0) {
-    return `${apiUrl}/uploads/${listing.images[0]}`;
+    const img = listing.images[0];
+    // If already a full URL (Supabase), use as-is
+    if (img.startsWith('http://') || img.startsWith('https://')) {
+      return img;
+    }
+    // Legacy local path
+    return `${apiUrl}/uploads/${img}`;
   }
   return 'https://placehold.co/600x400/166534/ffffff?text=Property';
 };

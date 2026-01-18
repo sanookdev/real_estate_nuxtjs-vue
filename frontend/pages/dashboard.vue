@@ -89,7 +89,7 @@
             
             <div class="h-48 overflow-hidden relative">
               <img 
-                :src="listing.images && listing.images.length ? `${apiUrl}/uploads/${listing.images[0]}` : 'https://placehold.co/600x400/166534/ffffff?text=Property'" 
+                :src="getListingImage(listing)" 
                 class="w-full h-full object-cover"
                 :class="{ 'grayscale opacity-70': listing.status === 'inactive' }"
               />
@@ -197,6 +197,19 @@ const fetchListings = async () => {
     } finally {
         loading.value = false;
     }
+};
+
+const getListingImage = (listing) => {
+  if (listing.images && listing.images.length > 0) {
+    const img = listing.images[0];
+    // If already a full URL (Supabase), use as-is
+    if (img.startsWith('http://') || img.startsWith('https://')) {
+      return img;
+    }
+    // Legacy local path
+    return `${apiUrl}/uploads/${img}`;
+  }
+  return 'https://placehold.co/600x400/166534/ffffff?text=Property';
 };
 
 const deleteListing = async (id) => {

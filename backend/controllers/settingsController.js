@@ -1,4 +1,15 @@
 const SettingsModel = require('../models/settingsModel');
+const supabaseStorage = require('../services/supabaseStorage');
+const path = require('path');
+
+/**
+ * Generate unique filename
+ */
+function generateFilename(originalname) {
+    const ext = path.extname(originalname);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    return uniqueSuffix + ext;
+}
 
 exports.getSettings = async (req, res) => {
     try {
@@ -36,25 +47,36 @@ exports.updateSettings = async (req, res) => {
     try {
         const settings = req.body; // Expect object { key: value, ... }
 
-        // Handle Logo Upload
-        // Handle File Uploads (Logo & Favicon)
-        if (req.files) {
-            const fs = require('fs');
-            const path = require('path');
-
-            // Helper to move file
-            const saveFile = (fileField) => {
+        // Handle File Uploads (Logo & Favicon) to Supabase Storage
+        if (req.files && supabaseStorage.isAvailable()) {
+            const uploadFile = async (fileField) => {
                 if (req.files[fileField] && req.files[fileField][0]) {
                     const file = req.files[fileField][0];
-                    const oldPath = file.path;
-                    const newPath = path.join('uploads', file.filename);
-                    fs.renameSync(oldPath, newPath);
-                    settings[fileField] = file.filename;
+                    const filename = generateFilename(file.originalname);
+                    const filePath = `settings/${filename}`;
+
+                    const result = await supabaseStorage.uploadFile(
+                        file.buffer,
+                        filePath,
+                        file.mimetype
+                    );
+
+                    if (result) {
+                        // Get old value to delete from storage
+                        const oldValue = await SettingsModel.get(fileField);
+                        if (oldValue) {
+                            const oldPath = supabaseStorage.extractPathFromUrl(oldValue);
+                            if (oldPath) {
+                                await supabaseStorage.deleteFile(oldPath);
+                            }
+                        }
+                        settings[fileField] = result.url;
+                    }
                 }
             };
 
-            saveFile('site_logo');
-            saveFile('site_favicon');
+            await uploadFile('site_logo');
+            await uploadFile('site_favicon');
         }
 
         for (const [key, value] of Object.entries(settings)) {

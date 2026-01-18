@@ -1,26 +1,16 @@
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 
-// Ensure upload directory exists
-const uploadDir = 'uploads';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
+/**
+ * Upload Middleware using Memory Storage
+ * 
+ * Files are stored in memory as Buffer objects.
+ * This allows us to upload directly to Supabase Storage
+ * without writing to disk first.
+ * 
+ * Access file data via: req.file.buffer (single) or req.files[i].buffer (multiple)
+ */
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const tempDir = 'uploads/temp';
-        if (!fs.existsSync(tempDir)) {
-            fs.mkdirSync(tempDir, { recursive: true });
-        }
-        cb(null, tempDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniqueSuffix + path.extname(file.originalname));
-    }
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {

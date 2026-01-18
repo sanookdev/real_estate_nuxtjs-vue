@@ -30,7 +30,7 @@
             <UFormGroup label="โลโก้เว็บไซต์ (Site Logo)" name="site_logo_upload">
               <div class="flex items-center gap-4">
                 <div v-if="settings.site_logo" class="shrink-0">
-                  <img :src="`${apiUrl}/uploads/${settings.site_logo}`" alt="Current Logo" class="h-12 w-12 object-contain rounded border border-gray-200 p-1">
+                  <img :src="getImageUrl(settings.site_logo)" alt="Current Logo" class="h-12 w-12 object-contain rounded border border-gray-200 p-1">
                 </div>
                 <input type="file" @change="onLogoChange" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
               </div>
@@ -41,7 +41,7 @@
             <UFormGroup label="ไอคอนเว็บไซต์ (Favicon)" name="site_favicon_upload">
               <div class="flex items-center gap-4">
                 <div v-if="settings.site_favicon" class="shrink-0">
-                  <img :src="`${apiUrl}/uploads/${settings.site_favicon}`" alt="Current Favicon" class="h-8 w-8 object-contain rounded border border-gray-200 p-1">
+                  <img :src="getImageUrl(settings.site_favicon)" alt="Current Favicon" class="h-8 w-8 object-contain rounded border border-gray-200 p-1">
                 </div>
                 <input type="file" @change="onFaviconChange" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
               </div>
@@ -226,6 +226,17 @@ const settings = reactive({
 });
 
 const testEmail = ref('');
+
+// Helper function for image URLs (supports Supabase)
+const getImageUrl = (imagePath) => {
+    if (!imagePath) return '';
+    // If already a full URL (Supabase), use as-is
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+    // Legacy local path
+    return `${apiUrl}/uploads/${imagePath}`;
+};
 
 onMounted(async () => {
     if (!authStore.user || authStore.user.role !== 'superadmin') {

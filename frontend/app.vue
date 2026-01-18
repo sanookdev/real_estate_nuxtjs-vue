@@ -2,6 +2,20 @@
 import { useSettingsStore } from '~/stores/settings';
 
 const settingsStore = useSettingsStore();
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl;
+
+// Helper function for favicon URL (supports Supabase)
+const getFaviconUrl = () => {
+  const favicon = settingsStore.settings?.site_favicon;
+  if (!favicon) return '/favicon.ico';
+  // If already a full URL (Supabase), use as-is
+  if (favicon.startsWith('http://') || favicon.startsWith('https://')) {
+    return favicon;
+  }
+  // Legacy local path
+  return `${apiUrl}/uploads/${favicon}`;
+};
 
 // Fetch settings on app init
 await callOnce(settingsStore.fetchSettings);
@@ -15,7 +29,7 @@ useHead({
     { 
       rel: 'icon', 
       type: 'image/x-icon', 
-      href: () => settingsStore.settings?.site_favicon ? `http://localhost:5000/uploads/${settingsStore.settings.site_favicon}` : '/favicon.ico' 
+      href: getFaviconUrl
     }
   ]
 });

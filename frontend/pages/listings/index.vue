@@ -246,7 +246,7 @@
               <!-- Image -->
               <div class="relative h-52 overflow-hidden">
                 <img 
-                  :src="listing.images && listing.images.length ? `${apiUrl}/uploads/${listing.images[0]}` : 'https://placehold.co/600x400/166534/ffffff?text=Property'" 
+                  :src="getListingImage(listing)" 
                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
                 <!-- Badges -->
@@ -378,6 +378,19 @@ const formatDate = (dateString) => {
     month: 'short', 
     year: 'numeric' 
   });
+};
+
+const getListingImage = (listing) => {
+  if (listing.images && listing.images.length > 0) {
+    const img = listing.images[0];
+    // If already a full URL (Supabase), use as-is
+    if (img.startsWith('http://') || img.startsWith('https://')) {
+      return img;
+    }
+    // Legacy local path
+    return `${apiUrl}/uploads/${img}`;
+  }
+  return 'https://placehold.co/600x400/166534/ffffff?text=Property';
 };
 
 const filters = reactive({
