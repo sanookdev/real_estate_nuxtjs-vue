@@ -41,6 +41,36 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/favorites', favoriteRoutes);
 app.use('/api/ads', adRoutes); // Added adRoutes usage
 
+// Global Error Handler - Shows detailed errors for debugging
+app.use((err, req, res, next) => {
+    console.error('Global Error Handler:', err);
+
+    const statusCode = err.statusCode || 500;
+    const response = {
+        message: err.message || 'Internal Server Error',
+        error: err.message,
+        path: req.path,
+        method: req.method,
+        timestamp: new Date().toISOString()
+    };
+
+    // Include stack trace in development/debug mode
+    if (process.env.NODE_ENV !== 'production' || process.env.DEBUG === 'true') {
+        response.stack = err.stack;
+    }
+
+    res.status(statusCode).json(response);
+});
+
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).json({
+        message: 'Route not found',
+        path: req.path,
+        method: req.method
+    });
+});
+
 const PORT = process.env.PORT || 5000;
 
 // Only start server if not being imported (for Vercel serverless)

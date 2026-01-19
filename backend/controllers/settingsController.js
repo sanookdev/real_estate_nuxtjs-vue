@@ -17,7 +17,7 @@ exports.getSettings = async (req, res) => {
         res.json(settings);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
 
@@ -39,7 +39,7 @@ exports.getPublicSettings = async (req, res) => {
         res.json(publicSettings);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
 
@@ -86,6 +86,6 @@ exports.updateSettings = async (req, res) => {
         res.json({ message: 'Settings updated successfully', settings });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }

@@ -141,7 +141,7 @@ exports.verifyOtp = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -266,7 +266,7 @@ exports.resendOtp = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -313,7 +313,7 @@ exports.login = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -349,7 +349,7 @@ exports.changePassword = async (req, res) => {
         res.json({ message: 'Password updated successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -387,7 +387,7 @@ exports.forgotPassword = async (req, res) => {
         res.json({ message: 'Password reset link sent to your email' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -421,6 +421,6 @@ exports.resetPassword = async (req, res) => {
         res.json({ message: 'Password has been reset successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };

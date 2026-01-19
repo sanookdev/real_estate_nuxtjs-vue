@@ -17,7 +17,7 @@ exports.getAllAds = async (req, res) => {
         res.json(ads);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -27,7 +27,7 @@ exports.getActiveAds = async (req, res) => {
         res.json(ads);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -56,7 +56,7 @@ exports.createAd = async (req, res) => {
         res.status(201).json({ message: 'Ad created successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -101,7 +101,7 @@ exports.updateAd = async (req, res) => {
         res.json({ message: 'Ad updated successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -121,6 +121,6 @@ exports.deleteAd = async (req, res) => {
         res.json({ message: 'Ad deleted' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };

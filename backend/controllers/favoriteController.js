@@ -22,7 +22,7 @@ exports.toggleFavorite = async (req, res) => {
         }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -33,7 +33,7 @@ exports.getMyFavorites = async (req, res) => {
         res.json(favorites);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -44,6 +44,6 @@ exports.getMyFavoriteDetails = async (req, res) => {
         res.json(favorites);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };

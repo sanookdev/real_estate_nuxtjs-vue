@@ -127,7 +127,7 @@ exports.getAllListings = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -140,7 +140,7 @@ exports.getListingById = async (req, res) => {
         res.json(listing);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 };
 
@@ -154,7 +154,7 @@ exports.getMyListings = async (req, res) => {
         res.json(formattedListings);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
 
@@ -181,7 +181,7 @@ exports.deleteListing = async (req, res) => {
         res.json({ message: 'Listing deleted' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
 
@@ -201,7 +201,7 @@ exports.updateStatus = async (req, res) => {
         res.json({ message: `Listing status updated to ${status}` });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
 
@@ -236,7 +236,7 @@ exports.updateMyListingStatus = async (req, res) => {
         res.json({ message: `Listing status updated to ${status}`, status });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
 
@@ -281,7 +281,7 @@ exports.getAdminListings = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
 
@@ -354,7 +354,7 @@ exports.updateListing = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
 
@@ -369,7 +369,7 @@ exports.getPinnedListings = async (req, res) => {
         res.json(formattedListings);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
 
@@ -391,6 +391,6 @@ exports.togglePinListing = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: error.message, error: error.stack });
     }
 }
