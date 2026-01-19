@@ -8,9 +8,24 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Debug: Check if DATABASE_URL is set
+const dbUrl = process.env.DATABASE_URL;
+console.log('DATABASE_URL exists:', !!dbUrl);
+if (dbUrl) {
+    // Mask password for logging
+    const maskedUrl = dbUrl.replace(/:([^:@]+)@/, ':****@');
+    console.log('DATABASE_URL (masked):', maskedUrl);
+}
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    connectionString: dbUrl,
+    ssl: {
+        rejectUnauthorized: false
+    },
+    // Serverless-friendly settings
+    max: 3, // Limit connections for serverless
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000
 });
 
 // Log connection status
